@@ -1,0 +1,8 @@
+Dropbox
+.cache
+.dropbo
+.local/share/Steam/appcache
+.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
+.local/share/Steam/steamapps/common
+.dropbox/logs/
+.local/share/Steam/logs
