@@ -1,0 +1,34 @@
+alias m=less
+if [ -f /snap/bin/emacs ]
+then
+  echo "Found snap emacs"
+  export EDITOR=emacs
+  function emacs () {  
+    /snap/bin/emacs $* 2>&1 1>/dev/null | grep -v Fontconfig | grep -v libgvfsdbus.so; 
+  }
+  alias e=emacs
+#Note this middle clause has not been tested
+elif [ `which emacs` ]
+then
+  echo "Found non-snap emacs"
+  export EDITOR=emacs
+  alias e="emacs"
+else
+  echo "Emacs not found - using nano"
+  export EDITOR=nano
+  alias e=nano
+fi
+alias z=clear
+alias md=mkdir
+alias ls='ls --color'
+# alias lsd='ls -lath|less'
+alias lsd='ls --color=always -lath|less -R'
+alias rmbak="rm .*~ *~ \#*"
+alias hex='hexdump -C'
+export LESS=-Xi
+alias open='xdg-open'
+function vinagre () {  
+  /usr/bin/vinagre $* 2>&1 1>/dev/null | grep -v Gtk-WARNING; 
+}
+alias vnc='vinagre'
+alias bc='bc -l'
