@@ -28,7 +28,7 @@ alias hex='hexdump -C'
 export LESS=-Xi
 alias open='xdg-open'
 function vinagre () {  
-  /usr/bin/vinagre $* 2>&1 1>/dev/null | grep -v Gtk-WARNING; 
+  /usr/bin/vinagre $* &> /dev/null | grep -v Gtk-WARNING; 
 }
 alias vnc='vinagre'
 alias bc='bc -l'
