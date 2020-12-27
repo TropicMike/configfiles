@@ -21,7 +21,6 @@ fi
 alias z=clear
 alias md=mkdir
 alias ls='ls --color'
-# alias lsd='ls -lath|less'
 alias lsd='ls --color=always -lath|less -R'
 alias rmbak="rm .*~ *~ \#*"
 alias hex='hexdump -C'
