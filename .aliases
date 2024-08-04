@@ -32,4 +32,4 @@ function vinagre () {
 alias vnc='vinagre'
 alias bc='bc -l'
 alias hexdump='hexdump -C'
-
+alias ntop='bmon'
