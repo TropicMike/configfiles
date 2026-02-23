@@ -1,4 +1,4 @@
-(setq default-directory "C:/Users/mikesa/Desktop/" )
+(setq default-directory "C:/Documents and Settings/USERNAME/Desktop/" )
 (load-theme 'wombat)
 (global-font-lock-mode 1) ; turn on syntax coloring
 (show-paren-mode 1) ; turn on paren match highlighting
@@ -10,9 +10,6 @@
 (add-to-list 'default-frame-alist '(height . 40)) ; lines
 (setq mouse-yank-at-point t)
 (put 'upcase-region 'disabled nil)
-(setq inhibit-startup-screen t)
-(setq inhibit-startup-message t)
-(setq initial-scratch-message nil)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -46,4 +43,3 @@ BEG and END (region to sort)."
   (format "^%s" (regexp-quote (car kill-ring))) nil t)
   (replace-match "" nil nil))
   (goto-char next-line))))))
-(put 'downcase-region 'disabled nil)
