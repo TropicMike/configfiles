@@ -4,7 +4,6 @@
 (show-paren-mode 1) ; turn on paren match highlighting
 (setq show-paren-style 'expression) ; highlight entire bracket expression
 (column-number-mode 1)
-(tool-bar-mode -1)
 (add-to-list 'default-frame-alist '(width . 120)) ; character
 (add-to-list 'default-frame-alist '(height . 40)) ; lines
 (setq mouse-yank-at-point t)
