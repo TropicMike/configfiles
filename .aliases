@@ -22,7 +22,7 @@ alias z=clear
 alias md=mkdir
 alias ls='ls --color'
 alias lsd='ls --color=always -lath|less -R'
-alias rmbak="rm .*~ *~ \#*"
+function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*' -delete; }
 alias hex='hexdump -C'
 export LESS=-Xi
 alias open='xdg-open'
