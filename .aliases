@@ -25,7 +25,9 @@ alias lsd='ls --color=always -lath|less -R'
 function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*' -delete; }
 alias hex='hexdump -C'
 export LESS=-Xi
-alias open='xdg-open'
+if [[ "$(uname)" == "Linux" ]]; then
+  alias open='xdg-open'
+fi
 function vinagre () {  
   /usr/bin/vinagre $* 2>&1 1>/dev/null | grep -v Gtk-WARNING; 
 }
