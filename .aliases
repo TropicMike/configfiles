@@ -1,37 +1,44 @@
 alias m=less
 if [ -f /snap/bin/emacs ]
 then
-#  echo "Found snap emacs"
   export EDITOR=emacs
-  function emacs () {  
-    /snap/bin/emacs $* 2>&1 1>/dev/null | grep -v Fontconfig | grep -v libgvfsdbus.so; 
+  function emacs () {
+    /snap/bin/emacs "$@" 2>&1 1>/dev/null | grep -v Fontconfig | grep -v libgvfsdbus.so;
   }
   alias e=emacs
-#Note this middle clause has not been tested
-elif [ `which emacs` ]
+elif command -v emacs &>/dev/null
 then
-#  echo "Found non-snap emacs"
   export EDITOR=emacs
   alias e="emacs"
 else
-#  echo "Emacs not found - using nano"
   export EDITOR=nano
   alias e=nano
 fi
 alias z=clear
 alias md=mkdir
-alias ls='ls --color'
-alias lsd='ls --color=always -lath|less -R'
+if [[ "$(uname)" == "Darwin" ]]; then
+  alias ls='ls -G'
+  alias lsd='ls -G -lath|less -R'
+else
+  alias ls='ls --color'
+  alias lsd='ls --color=always -lath|less -R'
+fi
 function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*' -delete; }
 alias hex='hexdump -C'
 export LESS=-Xi
 if [[ "$(uname)" == "Linux" ]]; then
   alias open='xdg-open'
 fi
-function vinagre () {  
-  /usr/bin/vinagre $* 2>&1 1>/dev/null | grep -v Gtk-WARNING; 
+function vinagre () {
+  /usr/bin/vinagre "$@" 2>&1 1>/dev/null | grep -v Gtk-WARNING;
 }
 alias vnc='vinagre'
 alias bc='bc -l'
-alias hexdump='hexdump -C'
 alias ntop='bmon'
+function ipa() {
+  if command -v ip &> /dev/null; then
+    ip -4 -o addr show | awk '{print $2, $4}' | sed 's/\/.*//'
+  else
+    ifconfig | grep -E "^[a-z]|inet " | awk '/^[a-z]/ {iface=$1} /inet / {print iface, $2}'
+  fi
+}
