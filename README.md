@@ -1,18 +1,15 @@
 # configfiles
 
-Personal configuration files and dotfiles for Linux/Unix and Windows environments. Managed in version control for backup and synchronization across systems. Deployment is manual.
+Personal configuration files and dotfiles for Linux, macOS, and Windows environments. Managed in version control for backup and synchronization across systems. Deployment is manual.
 
 ## Files
 
-### Shell Configuration (Linux/Unix)
+### Shared (root directory)
 
 | File | Description |
 |------|-------------|
-| `.bashrc` | Bash initialization — sets PATH and sources `.aliases` |
-| `.bashrc_root` | Root user bash configuration |
-| `.zshrc` | Zsh initialization — sets PATH, sources `.aliases`, sets prompt |
-| `.zshrc_root` | Root user zsh configuration |
 | `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh) |
+| `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` function |
 
 #### Aliases / Functions (`.aliases`)
 
@@ -22,23 +19,31 @@ Personal configuration files and dotfiles for Linux/Unix and Windows environment
 | `m` | `less` |
 | `z` | `clear` |
 | `md` | `mkdir` |
-| `ls` | `ls --color` |
+| `ls` | `ls --color` (Linux) / `ls -G` (macOS) |
 | `lsd` | Long listing with color, sorted by time, paged |
 | `rmbak` | Delete `*~` and `#*` backup files in current directory |
-| `hex` / `hexdump` | `hexdump -C` |
-| `open` | `xdg-open` |
+| `hex` | `hexdump -C` |
+| `open` | `xdg-open` (Linux only) |
 | `vnc` | `vinagre` (suppresses GTK warnings) |
 | `bc` | `bc -l` (math library) |
 | `ntop` | `bmon` network monitor |
+| `ipa` | Show IP addresses for all interfaces |
 
-### Editor Configuration
+### Linux/
 
 | File | Description |
 |------|-------------|
-| `.emacs` | Emacs config — wombat theme, line numbers, 120x40 window, `uniq-lines` function |
-| `.emacs-windows` | Emacs config for Windows |
+| `.bashrc` | Bash initialization — sets PATH, sources `.aliases`, sets prompt |
 
-### Windows Configuration
+### OSX/
+
+| File | Description |
+|------|-------------|
+| `.zshrc` | Zsh initialization — sets PATH, sources `.aliases`, sets prompt |
+| `.zshrc_root` | Root user zsh configuration |
+| `macos-fix-home-end.sh` | Remaps Home/End keys to beginning/end of line via DefaultKeyBinding.dict |
+
+### Windows/
 
 | File | Description |
 |------|-------------|
@@ -48,7 +53,7 @@ Personal configuration files and dotfiles for Linux/Unix and Windows environment
 | `MJS - fix passwordless login.bat` | Passwordless login fix script |
 | `hitman2-keys.reg` | Game-specific key bindings registry file |
 
-### Windows Right-Click Menu (`right-click/`)
+### Windows/right-click/
 
 Registry files to enable or disable the Windows context menu:
 
