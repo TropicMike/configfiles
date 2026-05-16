@@ -9,8 +9,8 @@ then
 elif [ -f /Applications/Emacs.app/Contents/MacOS/Emacs ]
 then
   export EDITOR=/Applications/Emacs.app/Contents/MacOS/Emacs
-  alias emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
-  alias e='/Applications/Emacs.app/Contents/MacOS/Emacs'
+  function emacs () { open -a Emacs "$@"; }
+  function e () { open -a Emacs "$@"; }
 elif command -v emacs &>/dev/null
 then
   export EDITOR=emacs
