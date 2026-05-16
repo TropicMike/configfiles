@@ -19,6 +19,11 @@ if not exist "%src%" (
     goto :eof
 )
 if exist "%dest%" (
+    fc /b "%src%" "%dest%" >nul 2>&1
+    if not errorlevel 1 (
+        echo   UNCHANGED %~nx2
+        goto :eof
+    )
     copy /y "%dest%" "%dest%.bak" >nul
     echo   BACKUP %dest% -^> %dest%.bak
 )

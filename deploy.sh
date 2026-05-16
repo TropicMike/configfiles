@@ -7,6 +7,10 @@ backup_and_copy() {
     echo "  SKIP $(basename "$src") (not found)"
     return
   fi
+  if [ -f "$dest" ] && diff -q "$src" "$dest" >/dev/null 2>&1; then
+    echo "  UNCHANGED $(basename "$dest")"
+    return
+  fi
   if [ -f "$dest" ]; then
     cp "$dest" "$dest.bak"
     echo "  BACKUP $dest -> $dest.bak"
