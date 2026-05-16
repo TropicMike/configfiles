@@ -59,6 +59,13 @@ Registry files to enable or disable the Windows context menu:
 - `enable_right_click_Allusers.reg` / `disable_right_click_Allusers.reg`
 - `enable_right_click_Currentuser.reg` / `disable_right_click_Currentuser.reg`
 
+### Deploy Scripts
+
+| File | Description |
+|------|-------------|
+| `deploy.sh` | Deploys config files on Linux/macOS — backs up existing files, skips unchanged |
+| `deploy.bat` | Deploys config files on Windows — backs up existing files, skips unchanged |
+
 ### Utility Scripts
 
 | File | Description |
