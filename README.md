@@ -39,8 +39,7 @@ Personal configuration files and dotfiles for Linux, macOS, and Windows environm
 
 | File | Description |
 |------|-------------|
-| `.zshrc` | Zsh initialization — sets PATH, sources `.aliases`, sets prompt |
-| `.zshrc_root` | Root user zsh configuration |
+| `.zshrc` | Zsh initialization — sets PATH, sources `.aliases`, sets prompt (red for root, green for user) |
 | `macos-fix-home-end.sh` | Remaps Home/End keys to beginning/end of line via DefaultKeyBinding.dict |
 
 ### Windows/
