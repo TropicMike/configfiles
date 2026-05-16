@@ -6,6 +6,11 @@ then
     /snap/bin/emacs "$@" 2>&1 1>/dev/null | grep -v Fontconfig | grep -v libgvfsdbus.so;
   }
   alias e=emacs
+elif [ -f /Applications/Emacs.app/Contents/MacOS/Emacs ]
+then
+  export EDITOR=/Applications/Emacs.app/Contents/MacOS/Emacs
+  alias emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
+  alias e='/Applications/Emacs.app/Contents/MacOS/Emacs'
 elif command -v emacs &>/dev/null
 then
   export EDITOR=emacs
