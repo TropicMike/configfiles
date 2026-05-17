@@ -1,5 +1,6 @@
 #!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CHANGED_SHELL_FILES=()
 
 backup_and_copy() {
   local src="$1" dest="$2"
@@ -17,6 +18,7 @@ backup_and_copy() {
   fi
   cp "$src" "$dest"
   echo "  INSTALLED $dest"
+  CHANGED_SHELL_FILES+=("$dest")
 }
 
 echo "Deploying config files to $HOME"
@@ -39,4 +41,31 @@ case "$(uname)" in
 esac
 
 echo ""
+
+# Determine sourceable files (exclude .emacs which can't be shell-sourced)
+SOURCEABLE=()
+for f in "${CHANGED_SHELL_FILES[@]}"; do
+  case "$f" in
+    *.emacs) ;;
+    *) SOURCEABLE+=("$f") ;;
+  esac
+done
+
+if [ ${#SOURCEABLE[@]} -gt 0 ]; then
+  # Detect if this script is being sourced
+  if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    for f in "${SOURCEABLE[@]}"; do
+      # shellcheck disable=SC1090
+      source "$f"
+      echo "  SOURCED $f"
+    done
+  else
+    echo "To activate changes, run:"
+    for f in "${SOURCEABLE[@]}"; do
+      echo "  source $f"
+    done
+    echo ""
+  fi
+fi
+
 echo "Done."
