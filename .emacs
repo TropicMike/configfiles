@@ -27,12 +27,12 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:slant normal :weight normal :height 120 :width normal)))))
+ '(default ((t (:slant normal :weight normal :height 140 :width normal)))))
 (cond
- ((find-font (font-spec :name "Consolas")) (set-frame-font "Consolas-11" nil t))
- ((find-font (font-spec :name "Menlo")) (set-frame-font "Menlo-11" nil t))
- ((find-font (font-spec :name "DejaVu Sans Mono")) (set-frame-font "DejaVu Sans Mono-11" nil t))
- ((find-font (font-spec :name "Courier New")) (set-frame-font "Courier New-11" nil t)))
+ ((find-font (font-spec :name "Consolas")) (set-frame-font "Consolas-14" nil t))
+ ((find-font (font-spec :name "Menlo")) (set-frame-font "Menlo-14" nil t))
+ ((find-font (font-spec :name "DejaVu Sans Mono")) (set-frame-font "DejaVu Sans Mono-14" nil t))
+ ((find-font (font-spec :name "Courier New")) (set-frame-font "Courier New-14" nil t)))
 (defun uniq-lines (beg end)
   "Unique lines in region.
 Called from a program, there are two arguments:
