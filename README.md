@@ -63,7 +63,7 @@ Registry files to enable or disable the Windows context menu:
 
 | File | Description |
 |------|-------------|
-| `deploy.sh` | Deploys config files on Linux/macOS — backs up existing files, skips unchanged |
+| `deploy.sh` | Deploys config files on Linux/macOS — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
 | `deploy.bat` | Deploys config files on Windows — backs up existing files, skips unchanged |
 
 ### Utility Scripts
