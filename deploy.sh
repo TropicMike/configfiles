@@ -2,6 +2,12 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHANGED_SHELL_FILES=()
 
+if [ "$(id -u)" -eq 0 ]; then
+  DEPLOY_HOME="$(eval echo ~root)"
+else
+  DEPLOY_HOME="$HOME"
+fi
+
 backup_and_copy() {
   local src="$1" dest="$2"
   if [ ! -f "$src" ]; then
@@ -21,19 +27,19 @@ backup_and_copy() {
   CHANGED_SHELL_FILES+=("$dest")
 }
 
-echo "Deploying config files to $HOME"
+echo "Deploying config files to $DEPLOY_HOME"
 echo "OS: $(uname)"
 echo ""
 
-backup_and_copy "$SCRIPT_DIR/.aliases" "$HOME/.aliases"
-backup_and_copy "$SCRIPT_DIR/.emacs" "$HOME/.emacs"
+backup_and_copy "$SCRIPT_DIR/.aliases" "$DEPLOY_HOME/.aliases"
+backup_and_copy "$SCRIPT_DIR/.emacs" "$DEPLOY_HOME/.emacs"
 
 case "$(uname)" in
   Linux)
-    backup_and_copy "$SCRIPT_DIR/Linux/.bashrc" "$HOME/.bashrc"
+    backup_and_copy "$SCRIPT_DIR/Linux/.bashrc" "$DEPLOY_HOME/.bashrc"
     ;;
   Darwin)
-    backup_and_copy "$SCRIPT_DIR/OSX/.zshrc" "$HOME/.zshrc"
+    backup_and_copy "$SCRIPT_DIR/OSX/.zshrc" "$DEPLOY_HOME/.zshrc"
     ;;
   *)
     echo "  WARNING: Unknown OS '$(uname)', only shared files deployed"
