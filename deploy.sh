@@ -39,7 +39,7 @@ case "$(uname)" in
     backup_and_copy "$SCRIPT_DIR/Linux/.bashrc" "$DEPLOY_HOME/.bashrc"
     ;;
   Darwin)
-    backup_and_copy "$SCRIPT_DIR/OSX/.zshrc" "$DEPLOY_HOME/.zshrc"
+    backup_and_copy "$SCRIPT_DIR/MacOS/.zshrc" "$DEPLOY_HOME/.zshrc"
     ;;
   *)
     echo "  WARNING: Unknown OS '$(uname)', only shared files deployed"

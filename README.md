@@ -35,7 +35,7 @@ Personal configuration files and dotfiles for Linux, macOS, and Windows environm
 |------|-------------|
 | `.bashrc` | Bash initialization — sets PATH, sources `.aliases`, sets prompt |
 
-### OSX/
+### MacOS/
 
 | File | Description |
 |------|-------------|
