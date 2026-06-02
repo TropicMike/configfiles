@@ -2,6 +2,12 @@
 
 Personal configuration files and dotfiles for Linux, macOS, and Windows environments. Managed in version control for backup and synchronization across systems. Deployment is manual.
 
+## Usage
+
+Run `./deploy.sh` to deploy the shared and OS-specific config files to your home directory.
+
+To install the files for the **root** user, run the script with `sudo` (e.g. `sudo ./deploy.sh`) — it then deploys to root's home directory instead of yours.
+
 ## Files
 
 ### Shared (root directory)

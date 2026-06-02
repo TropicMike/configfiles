@@ -29,6 +29,9 @@ backup_and_copy() {
 
 echo "Deploying config files to $DEPLOY_HOME"
 echo "OS: $(uname)"
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Note: to install the files for the root user, re-run with sudo (sudo ./deploy.sh)"
+fi
 echo ""
 
 backup_and_copy "$SCRIPT_DIR/.aliases" "$DEPLOY_HOME/.aliases"
