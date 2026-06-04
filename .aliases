@@ -1,11 +1,19 @@
 alias m=less
+# Pick an editor by what's installed, in order of preference:
+# Linux snap emacs -> macOS GUI Emacs.app -> any terminal emacs -> nano.
+# EDITOR is set for tools like git; `e` is the interactive shortcut.
 if [ -f /snap/bin/emacs ]
 then
   export EDITOR=emacs
+  # Run GUI emacs detached and strip its noisy startup warnings
+  # (Fontconfig / libgvfsdbus.so) so they don't clutter the terminal.
   function emacs () {
     /snap/bin/emacs "$@" 2>&1 1>/dev/null | grep -v Fontconfig | grep -v libgvfsdbus.so;
   }
   alias e=emacs
+# Use the first Emacs.app found across standard install locations.
+# EDITOR points at the real binary (so git etc. can invoke it directly);
+# the e/emacs functions use `open -a` for normal interactive launches.
 elif _emacs_app="$(
        for _p in \
          /Applications/Emacs.app/Contents/MacOS/Emacs \
@@ -31,6 +39,7 @@ alias z=clear
 alias md=mkdir
 if [[ "$(uname)" == "Darwin" ]]; then
   alias ls='ls -G'
+  # CLICOLOR_FORCE keeps ls colors when piping into less (BSD ls drops them otherwise)
   alias lsd='CLICOLOR_FORCE=1 ls -G -lath|less -R'
 else
   alias ls='ls --color'
@@ -38,6 +47,7 @@ else
 fi
 function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*' -delete; }
 alias hex='hexdump -C'
+# less options: -X leave output on screen after quitting, -i case-insensitive search
 export LESS=-Xi
 if [[ "$(uname)" == "Linux" ]]; then
   alias open='xdg-open'
@@ -48,6 +58,7 @@ function vinagre () {
 alias vnc='vinagre'
 alias bc='bc -l'
 alias ntop='bmon'
+# Print each interface and its IPv4 address; use `ip` if available, else fall back to ifconfig.
 function ipa() {
   if command -v ip &> /dev/null; then
     ip -4 -o addr show | awk '{print $2, $4}' | sed 's/\/.*//'
