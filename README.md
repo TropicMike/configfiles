@@ -72,16 +72,9 @@ Registry files to enable or disable the Windows context menu:
 | `deploy.sh` | Deploys config files on Linux/macOS — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
 | `deploy.bat` | Deploys config files on Windows — backs up existing files, skips unchanged |
 
-### Utility Scripts
-
-| File | Description |
-|------|-------------|
-| `restart-wifi.sh` | Restarts the `brcmfmac` WiFi driver on Linux |
-| `start_portainer.sh` | Starts Docker Portainer container |
-| `upgrade_portainer.txt` | Step-by-step commands for upgrading Portainer |
-
 ## Notes
 
-- Shell scripts use Unix line endings (LF)
-- Batch files use DOS line endings (CRLF)
-- Registry files use UTF-16 encoding with BOM
+- Line endings and encodings are enforced via `.gitattributes`:
+  - Shell scripts and dotfiles use Unix line endings (LF)
+  - Batch files use DOS line endings (CRLF)
+  - Registry files use UTF-16 encoding with BOM

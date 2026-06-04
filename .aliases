@@ -6,11 +6,19 @@ then
     /snap/bin/emacs "$@" 2>&1 1>/dev/null | grep -v Fontconfig | grep -v libgvfsdbus.so;
   }
   alias e=emacs
-elif [ -f /Applications/Emacs.app/Contents/MacOS/Emacs ]
+elif _emacs_app="$(
+       for _p in \
+         /Applications/Emacs.app/Contents/MacOS/Emacs \
+         "$HOME/Applications/Emacs.app/Contents/MacOS/Emacs" \
+         /opt/homebrew/opt/emacs/Emacs.app/Contents/MacOS/Emacs; do
+         [ -f "$_p" ] && { echo "$_p"; break; }
+       done
+     )" && [ -n "$_emacs_app" ]
 then
-  export EDITOR=/Applications/Emacs.app/Contents/MacOS/Emacs
+  export EDITOR="$_emacs_app"
   function emacs () { open -a Emacs "$@"; }
   function e () { open -a Emacs "$@"; }
+  unset _emacs_app _p
 elif command -v emacs &>/dev/null
 then
   export EDITOR=emacs
@@ -23,7 +31,7 @@ alias z=clear
 alias md=mkdir
 if [[ "$(uname)" == "Darwin" ]]; then
   alias ls='ls -G'
-  alias lsd='ls -G -lath|less -R'
+  alias lsd='CLICOLOR_FORCE=1 ls -G -lath|less -R'
 else
   alias ls='ls --color'
   alias lsd='ls --color=always -lath|less -R'

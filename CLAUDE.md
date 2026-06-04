@@ -4,46 +4,47 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a personal configuration files repository containing dotfiles, system configurations, and utility scripts for both Linux/Unix and Windows environments. Files are meant to be manually deployed to their respective target systems, not built or tested programmatically.
+This is a personal configuration files repository containing dotfiles, system configurations, and utility scripts for Linux, macOS, and Windows environments. Files are deployed to their target systems via the `deploy.sh` / `deploy.bat` scripts; they are version controlled for backup and synchronization across systems, not built or tested programmatically.
 
 ## Repository Structure
 
-### Shell Configuration (Linux/Unix)
-- `.bashrc` - Bash initialization, sets PATH and sources .aliases
-- `.bashrc_root` - Root user bash configuration (if it exists)
-- `.aliases` - Bash aliases and shell functions, includes:
-  - Editor detection and configuration (snap emacs, standard emacs, or nano fallback)
-  - Common command shortcuts (m, z, md, e, etc.)
-  - Utility aliases (hex, vnc, ntop/bmon)
+### Shared Configuration (repo root)
+- `.aliases` - Shared aliases and shell functions, sourced by both bash and zsh:
+  - Cross-platform editor detection (snap emacs, macOS Emacs.app GUI, standard emacs, or nano fallback)
+  - Common command shortcuts (`m`, `z`, `md`, `e`, etc.)
+  - OS-aware `ls`/`lsd`, plus utilities (`hex`, `vnc`, `ntop`/`bmon`, `ipa`, `rmbak`)
+- `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, custom `uniq-lines` function
 
-### Editor Configuration
-- `.emacs` - Emacs initialization with custom settings:
-  - Wombat theme, syntax highlighting, line numbers
-  - Custom window dimensions (120x40)
-  - Custom `uniq-lines` function for removing duplicate lines in region
+### Linux/
+- `.bashrc` - Bash initialization: guards against non-interactive shells, sets PATH, sources `.aliases`, sets prompt (red for root, green for user)
 
-### Windows Configuration
-- `aliases.bat` - DOS command aliases (ls, cp, mv, clear, etc.)
-- Various `.bat` utility scripts for system configuration
+### MacOS/
+- `.zshrc` - Zsh initialization: sets PATH, sources `.aliases`, sets prompt (red for root, green for user)
+- `macos-fix-home-end.sh` - Remaps Home/End keys to beginning/end of line via `DefaultKeyBinding.dict`
 
-### Windows Registry Files
-- `hitman2-keys.reg` - Game-specific key bindings
-- `right-click/` folder contains registry files to enable/disable Windows context menus:
+### Windows/
+- `aliases.bat` - DOS command aliases (`ls`, `cp`, `xcp`, `mv`, `clear`, `h`, `alias`)
+- `netlogon.bat` - Network logon script
+- `run-bi.bat` - BI application launcher
+- `MJS - fix passwordless login.bat` - Passwordless login fix script
+- `hitman2-keys.reg` - Game-specific key bindings registry file
+- `right-click/` - Registry files to enable/disable the Windows context menu:
   - `enable_right_click_Allusers.reg` / `disable_right_click_Allusers.reg`
   - `enable_right_click_Currentuser.reg` / `disable_right_click_Currentuser.reg`
 
-### Utility Scripts
-- `restart-wifi.sh` - Linux script to restart brcmfmac WiFi driver
-- `start_portainer.sh` - Docker Portainer startup
-- `upgrade_portainer.txt` - Step-by-step Docker commands for upgrading Portainer
+### Deploy Scripts
+- `deploy.sh` - Deploys shared + OS-specific files on Linux/macOS. Backs up existing files (`.bak`), skips unchanged, and can re-source changed shell files. Run with `sudo` to deploy to root's home directory.
+- `deploy.bat` - Windows equivalent (`.emacs`, `aliases.bat`).
 
 ## Working with This Repository
 
 When modifying files:
-- Shell configs should maintain the editor detection logic in .aliases
-- Registry files use UTF-16 encoding with BOM
-- Batch files should preserve DOS line endings (CRLF)
-- Shell scripts should use Unix line endings (LF)
+- Keep the editor-detection logic in `.aliases` cross-platform (Linux snap, macOS GUI, generic, nano fallback)
+- `.aliases` is sourced by both bash and zsh — keep it POSIX-portable across the two
+- Line endings and encodings are enforced by `.gitattributes`:
+  - Shell scripts and dotfiles use Unix line endings (LF)
+  - Batch files use DOS line endings (CRLF)
+  - Registry files use UTF-16 encoding with BOM
 - Maintain existing alias naming conventions and patterns
 
-Configuration deployment is manual - these files are version controlled for backup and synchronization across systems, not for automated installation.
+Deployment is driven by `deploy.sh` (Linux/macOS) and `deploy.bat` (Windows), which back up existing files before overwriting.

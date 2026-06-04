@@ -1,0 +1,14 @@
+# Enforce consistent line endings and encodings across platforms.
+
+# Shell scripts and dotfiles: Unix line endings (LF)
+*.sh      text eol=lf
+.bashrc   text eol=lf
+.zshrc    text eol=lf
+.aliases  text eol=lf
+.emacs    text eol=lf
+
+# Windows batch files: DOS line endings (CRLF)
+*.bat     text eol=crlf
+
+# Windows registry files: UTF-16 with BOM, leave bytes untouched
+*.reg     -text
