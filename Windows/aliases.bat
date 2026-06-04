@@ -1,10 +1,12 @@
 @echo off
 rem https://superuser.com/questions/150244/command-aliases-in-command-prompt
+rem DOSKEY macros only last for the current console session.
 echo Setting MJS aliases - type 'alias' to see options
-DOSKEY ls=DIR $* 
-DOSKEY cp=COPY $* 
+DOSKEY ls=DIR $*
+DOSKEY cp=COPY $*
 DOSKEY xcp=XCOPY $*
-DOSKEY mv=MOVE $* 
+DOSKEY mv=MOVE $*
 DOSKEY clear=CLS
 DOSKEY h=DOSKEY /HISTORY
+rem 'alias' with no args lists all macros; with args it defines a new one.
 DOSKEY alias=if ".$*." == ".." ( DOSKEY /MACROS ) else ( DOSKEY $* )
