@@ -1,4 +1,5 @@
 alias m=less
+
 # Pick an editor by what's installed, in order of preference:
 # Linux snap emacs -> macOS GUI Emacs.app -> any terminal emacs -> nano.
 # EDITOR is set for tools like git; `e` is the interactive shortcut.
@@ -35,8 +36,10 @@ else
   export EDITOR=nano
   alias e=nano
 fi
+
 alias z=clear
 alias md=mkdir
+
 if [[ "$(uname)" == "Darwin" ]]; then
   alias ls='ls -G'
   # CLICOLOR_FORCE keeps ls colors when piping into less (BSD ls drops them otherwise)
@@ -45,19 +48,26 @@ else
   alias ls='ls --color'
   alias lsd='ls --color=always -lath|less -R'
 fi
+
 function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*' -delete; }
+
 alias hex='hexdump -C'
+
 # less options: -X leave output on screen after quitting, -i case-insensitive search
 export LESS=-Xi
+
 if [[ "$(uname)" == "Linux" ]]; then
   alias open='xdg-open'
 fi
+
 function vinagre () {
   /usr/bin/vinagre "$@" 2>&1 1>/dev/null | grep -v Gtk-WARNING;
 }
 alias vnc='vinagre'
+
 alias bc='bc -l'
 alias ntop='bmon'
+
 # Print each interface and its IPv4 address; use `ip` if available, else fall back to ifconfig.
 function ipa() {
   if command -v ip &> /dev/null; then

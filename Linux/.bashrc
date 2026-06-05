@@ -4,6 +4,7 @@
 # contains 'i' only for interactive shells.
 case $- in *i*) ;; *) return;; esac
 
+
 # /snap/bin goes on PATH for everyone. The user-specific dirs (Go toolchain,
 # pip/local installs, ~/bin) are only added for non-root users — root doesn't
 # need them and shouldn't run things out of a user's home.
@@ -15,12 +16,15 @@ if [ "$EUID" -ne 0 ]; then
 fi
 export PATH
 
+
 source ~/.aliases
+
 
 # Escape sequence that sets the terminal window/tab title to the hostname (\h).
 # \e]0; ... \a is the OSC "set title" control string; embedded in PS1 below so
 # the title refreshes on every prompt.
 TITLEBAR='\[\e]0;\h\a\]'
+
 # Prompt: user@host:dir$  — username colored red for root / green for normal
 # users (visual warning that you're root), hostname yellow, dir blue.
 # \[...\] wraps non-printing escapes so bash computes line length correctly;
