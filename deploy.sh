@@ -1,5 +1,15 @@
 #!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# May be executed (bash) or sourced from bash OR zsh (zsh is the macOS default
+# shell), so resolve this script's path in a way that works for all three.
+if [ -n "${BASH_SOURCE[0]:-}" ]; then
+  _self="${BASH_SOURCE[0]}"
+elif [ -n "${ZSH_VERSION:-}" ]; then
+  _self="${(%):-%x}"  # zsh: path of the file currently being sourced
+else
+  _self="$0"
+fi
+SCRIPT_DIR="$(cd "$(dirname "$_self")" && pwd)"
+unset _self
 CHANGED_SHELL_FILES=()
 
 if [ "$(id -u)" -eq 0 ]; then
@@ -61,8 +71,15 @@ for f in "${CHANGED_SHELL_FILES[@]}"; do
 done
 
 if [ ${#SOURCEABLE[@]} -gt 0 ]; then
-  # Detect if this script is being sourced
-  if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  # Detect if this script is being sourced (bash compares BASH_SOURCE to $0;
+  # zsh reports ":file" in ZSH_EVAL_CONTEXT while sourcing).
+  SOURCED=0
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    case "${ZSH_EVAL_CONTEXT:-}" in *:file*) SOURCED=1 ;; esac
+  elif [ "${BASH_SOURCE[0]}" != "${0}" ]; then
+    SOURCED=1
+  fi
+  if [ "$SOURCED" -eq 1 ]; then
     for f in "${SOURCEABLE[@]}"; do
       # shellcheck disable=SC1090
       source "$f"

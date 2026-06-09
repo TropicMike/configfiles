@@ -24,7 +24,6 @@
 
 ;; Skip the splash/startup screen and start with an empty *scratch* buffer.
 (setq inhibit-startup-screen t)
-(setq inhibit-startup-message t)
 (setq initial-scratch-message nil)
 
 (custom-set-variables
@@ -32,9 +31,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(column-number-mode t)
- '(inhibit-startup-screen t)
- '(show-paren-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -51,24 +47,8 @@
  ((find-font (font-spec :name "DejaVu Sans Mono")) (set-frame-font "DejaVu Sans Mono-14" nil t))
  ((find-font (font-spec :name "Courier New")) (set-frame-font "Courier New-14" nil t)))
 
-(defun uniq-lines (beg end)
-  "Unique lines in region.
-Called from a program, there are two arguments:
-BEG and END (region to sort)."
-  (interactive "r")
-  (save-excursion
-  (save-restriction
-  (narrow-to-region beg end)
-  (goto-char (point-min))
-  (while (not (eobp))
-  (kill-line 1)
-  (yank)
-  (let ((next-line (point)))
-  (while
-  (re-search-forward
-  (format "^%s" (regexp-quote (car kill-ring))) nil t)
-  (replace-match "" nil nil))
-  (goto-char next-line))))))
+;; Remove duplicate lines in region (keeps first occurrence).
+(defalias 'uniq-lines 'delete-duplicate-lines)
 
 ;; Enable this case-changing command without the "disabled command" prompt.
 (put 'downcase-region 'disabled nil)

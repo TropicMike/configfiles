@@ -25,5 +25,4 @@ fi
 # Keep PATH entries unique (drop duplicates) — zsh's equivalent of dedup.
 typeset -U PATH
 
-
-source ~/.aliases
+[ -f ~/.aliases ] && source ~/.aliases

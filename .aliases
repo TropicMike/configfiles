@@ -1,21 +1,12 @@
 alias m=less
 
 # Pick an editor by what's installed, in order of preference:
-# Linux snap emacs -> macOS GUI Emacs.app -> any terminal emacs -> nano.
+# macOS GUI Emacs.app -> any terminal emacs -> nano.
 # EDITOR is set for tools like git; `e` is the interactive shortcut.
-if [ -f /snap/bin/emacs ]
-then
-  export EDITOR=emacs
-  # Run GUI emacs detached and strip its noisy startup warnings
-  # (Fontconfig / libgvfsdbus.so) so they don't clutter the terminal.
-  function emacs () {
-    /snap/bin/emacs "$@" 2>&1 1>/dev/null | grep -v Fontconfig | grep -v libgvfsdbus.so;
-  }
-  alias e=emacs
 # Use the first Emacs.app found across standard install locations.
 # EDITOR points at the real binary (so git etc. can invoke it directly);
 # the e/emacs functions use `open -a` for normal interactive launches.
-elif _emacs_app="$(
+if _emacs_app="$(
        for _p in \
          /Applications/Emacs.app/Contents/MacOS/Emacs \
          "$HOME/Applications/Emacs.app/Contents/MacOS/Emacs" \
@@ -27,7 +18,6 @@ then
   export EDITOR="$_emacs_app"
   function emacs () { open -a Emacs "$@"; }
   function e () { open -a Emacs "$@"; }
-  unset _emacs_app _p
 elif command -v emacs &>/dev/null
 then
   export EDITOR=emacs
@@ -36,6 +26,10 @@ else
   export EDITOR=nano
   alias e=nano
 fi
+
+# _p lives only inside the $(...) subshell above; _emacs_app can linger
+# (empty) when no Emacs.app was found, so clean it up here.
+unset _emacs_app
 
 alias z=clear
 alias md=mkdir
@@ -60,13 +54,8 @@ if [[ "$(uname)" == "Linux" ]]; then
   alias open='xdg-open'
 fi
 
-function vinagre () {
-  /usr/bin/vinagre "$@" 2>&1 1>/dev/null | grep -v Gtk-WARNING;
-}
-alias vnc='vinagre'
-
 alias bc='bc -l'
-alias ntop='bmon'
+command -v bmon >/dev/null 2>&1 && alias ntop='bmon'
 
 # Print each interface and its IPv4 address; use `ip` if available, else fall back to ifconfig.
 function ipa() {

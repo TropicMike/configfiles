@@ -15,13 +15,13 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | File | Description |
 |------|-------------|
 | `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh) |
-| `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` function |
+| `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
 
 #### Aliases / Functions (`.aliases`)
 
 | Alias/Function | Description |
 |----------------|-------------|
-| `e` | Open editor (emacs via snap, standard emacs, or nano fallback) |
+| `e` | Open editor (macOS Emacs.app, standard emacs, or nano fallback) |
 | `m` | `less` |
 | `z` | `clear` |
 | `md` | `mkdir` |
@@ -30,7 +30,6 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | `rmbak` | Delete `*~` and `#*` backup files in current directory |
 | `hex` | `hexdump -C` |
 | `open` | `xdg-open` (Linux only) |
-| `vnc` | `vinagre` (suppresses GTK warnings) |
 | `bc` | `bc -l` (math library) |
 | `ntop` | `bmon` network monitor |
 | `ipa` | Show IP addresses for all interfaces |

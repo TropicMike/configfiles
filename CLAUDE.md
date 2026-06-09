@@ -10,10 +10,10 @@ This is a personal configuration files repository containing dotfiles, system co
 
 ### Shared Configuration (repo root)
 - `.aliases` - Shared aliases and shell functions, sourced by both bash and zsh:
-  - Cross-platform editor detection (snap emacs, macOS Emacs.app GUI, standard emacs, or nano fallback)
+  - Cross-platform editor detection (macOS Emacs.app GUI, standard emacs, or nano fallback)
   - Common command shortcuts (`m`, `z`, `md`, `e`, etc.)
-  - OS-aware `ls`/`lsd`, plus utilities (`hex`, `vnc`, `ntop`/`bmon`, `ipa`, `rmbak`)
-- `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, custom `uniq-lines` function
+  - OS-aware `ls`/`lsd`, plus utilities (`hex`, `ntop`/`bmon`, `ipa`, `rmbak`)
+- `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines`
 
 ### Linux/
 - `.bashrc` - Bash initialization: guards against non-interactive shells, sets PATH, sources `.aliases`, sets prompt (red for root, green for user)
@@ -39,7 +39,7 @@ This is a personal configuration files repository containing dotfiles, system co
 ## Working with This Repository
 
 When modifying files:
-- Keep the editor-detection logic in `.aliases` cross-platform (Linux snap, macOS GUI, generic, nano fallback)
+- Keep the editor-detection logic in `.aliases` cross-platform (macOS GUI, generic, nano fallback)
 - `.aliases` is sourced by both bash and zsh — keep it POSIX-portable across the two
 - Line endings and encodings are enforced by `.gitattributes`:
   - Shell scripts and dotfiles use Unix line endings (LF)

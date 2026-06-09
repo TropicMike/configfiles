@@ -4,21 +4,19 @@
 # contains 'i' only for interactive shells.
 case $- in *i*) ;; *) return;; esac
 
-
-# /snap/bin goes on PATH for everyone. The user-specific dirs (Go toolchain,
-# pip/local installs, ~/bin) are only added for non-root users — root doesn't
-# need them and shouldn't run things out of a user's home.
-PATH="$PATH:/snap/bin"
+# The user-specific dirs (Go toolchain, pip/local installs, ~/bin) are only
+# added for non-root users — root doesn't need them and shouldn't run things
+# out of a user's home. The case guard skips dirs already on PATH so nested
+# shells don't accumulate duplicates.
 if [ "$EUID" -ne 0 ]; then
-  PATH="$PATH:/usr/local/go/bin"
-  PATH="$PATH:$HOME/.local/bin"
-  PATH="$PATH:$HOME/bin"
+  for _d in /usr/local/go/bin "$HOME/.local/bin" "$HOME/bin"; do
+    case ":$PATH:" in *":$_d:"*) ;; *) PATH="$PATH:$_d" ;; esac
+  done
+  unset _d
 fi
 export PATH
 
-
-source ~/.aliases
-
+[ -f ~/.aliases ] && source ~/.aliases
 
 # Escape sequence that sets the terminal window/tab title to the hostname (\h).
 # \e]0; ... \a is the OSC "set title" control string; embedded in PS1 below so
