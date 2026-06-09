@@ -65,3 +65,21 @@ function ipa() {
     ifconfig | grep -E "^[a-z]|inet " | awk '/^[a-z]/ {iface=$1} /inet / {print iface, $2}'
   fi
 }
+
+# Once a day, check in the background whether the configfiles repo has new
+# upstream commits and print a reminder to pull + deploy. The stamp file
+# limits it to one fetch per 24h no matter how many shells are opened; the
+# ( { ... } & ) form detaches the work so shell startup isn't delayed and no
+# job-control notice is printed. No-op on machines without the repo cloned.
+_cfg_repo=~/Repos/configfiles
+_cfg_stamp=~/.cache/configfiles-checked
+if [ -d "$_cfg_repo/.git" ] && [ -z "$(find "$_cfg_stamp" -mtime -1 2>/dev/null)" ]; then
+  mkdir -p ~/.cache && touch "$_cfg_stamp"
+  ( {
+      git -C "$_cfg_repo" fetch -q 2>/dev/null
+      _n="$(git -C "$_cfg_repo" rev-list --count HEAD..origin/master 2>/dev/null)"
+      [ "${_n:-0}" -gt 0 ] &&
+        echo "configfiles: ${_n} new commit(s) upstream — run: git -C $_cfg_repo pull && $_cfg_repo/deploy.sh"
+    } & )
+fi
+unset _cfg_repo _cfg_stamp

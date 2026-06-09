@@ -13,6 +13,7 @@ This is a personal configuration files repository containing dotfiles, system co
   - Cross-platform editor detection (macOS Emacs.app GUI, standard emacs, or nano fallback)
   - Common command shortcuts (`m`, `z`, `md`, `e`, etc.)
   - OS-aware `ls`/`lsd`, plus utilities (`hex`, `ntop`/`bmon`, `ipa`, `rmbak`)
+  - Once-daily background check for new upstream commits to this repo (`~/Repos/configfiles`), printing a pull + deploy reminder; throttled via a stamp file in `~/.cache`
 - `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines`
 
 ### Linux/

@@ -14,7 +14,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 
 | File | Description |
 |------|-------------|
-| `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh) |
+| `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks once a day for new upstream commits to this repo and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`) |
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
 
 #### Aliases / Functions (`.aliases`)
