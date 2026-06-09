@@ -1,4 +1,5 @@
 @echo off
+setlocal
 set SCRIPT_DIR=%~dp0
 
 echo Deploying config files to %USERPROFILE%
@@ -15,7 +16,7 @@ goto :eof
 set "src=%~1"
 set "dest=%~2"
 if not exist "%src%" (
-    echo   SKIP %~nx1 (not found)
+    echo   SKIP %~nx1 ^(not found^)
     goto :eof
 )
 if exist "%dest%" (
