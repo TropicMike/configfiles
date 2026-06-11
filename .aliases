@@ -66,20 +66,16 @@ function ipa() {
   fi
 }
 
-# Once a day, check in the background whether the configfiles repo has new
-# upstream commits and print a reminder to pull + deploy. The stamp file
-# limits it to one fetch per 24h no matter how many shells are opened; the
+# On every new shell, check in the background whether the configfiles repo has
+# new upstream commits and print a reminder to pull + deploy. The
 # ( { ... } & ) form detaches the work so shell startup isn't delayed and no
 # job-control notice is printed. No-op on machines without the repo cloned.
-# The stamp is touched only after a successful fetch, so an offline shell
-# retries on the next launch instead of going quiet for 24h.
+# Note: this fetches from the remote on each shell, and the reminder reprints
+# every shell until you pull.
 _cfg_repo=~/Repos/configfiles
-_cfg_stamp=~/.cache/configfiles-checked
-if [ -d "$_cfg_repo/.git" ] && [ -z "$(find "$_cfg_stamp" -mtime -1 2>/dev/null)" ]; then
-  mkdir -p ~/.cache
+if [ -d "$_cfg_repo/.git" ]; then
   ( {
       if git -C "$_cfg_repo" fetch -q 2>/dev/null; then
-        touch "$_cfg_stamp"
         # Resolve the remote's default branch (origin/HEAD, set at clone time)
         # rather than hardcoding master, so a rename to main keeps working.
         _def="$(git -C "$_cfg_repo" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)"
@@ -89,4 +85,4 @@ if [ -d "$_cfg_repo/.git" ] && [ -z "$(find "$_cfg_stamp" -mtime -1 2>/dev/null)
       fi
     } & )
 fi
-unset _cfg_repo _cfg_stamp
+unset _cfg_repo
