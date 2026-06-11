@@ -80,7 +80,10 @@ if [ -d "$_cfg_repo/.git" ] && [ -z "$(find "$_cfg_stamp" -mtime -1 2>/dev/null)
   ( {
       if git -C "$_cfg_repo" fetch -q 2>/dev/null; then
         touch "$_cfg_stamp"
-        _n="$(git -C "$_cfg_repo" rev-list --count HEAD..origin/master 2>/dev/null)"
+        # Resolve the remote's default branch (origin/HEAD, set at clone time)
+        # rather than hardcoding master, so a rename to main keeps working.
+        _def="$(git -C "$_cfg_repo" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)"
+        _n="$(git -C "$_cfg_repo" rev-list --count "HEAD..${_def:-origin/master}" 2>/dev/null)"
         [ "${_n:-0}" -gt 0 ] &&
           echo "configfiles: ${_n} new commit(s) upstream — run: git -C $_cfg_repo pull && $_cfg_repo/deploy.sh"
       fi
