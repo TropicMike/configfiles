@@ -71,15 +71,19 @@ function ipa() {
 # limits it to one fetch per 24h no matter how many shells are opened; the
 # ( { ... } & ) form detaches the work so shell startup isn't delayed and no
 # job-control notice is printed. No-op on machines without the repo cloned.
+# The stamp is touched only after a successful fetch, so an offline shell
+# retries on the next launch instead of going quiet for 24h.
 _cfg_repo=~/Repos/configfiles
 _cfg_stamp=~/.cache/configfiles-checked
 if [ -d "$_cfg_repo/.git" ] && [ -z "$(find "$_cfg_stamp" -mtime -1 2>/dev/null)" ]; then
-  mkdir -p ~/.cache && touch "$_cfg_stamp"
+  mkdir -p ~/.cache
   ( {
-      git -C "$_cfg_repo" fetch -q 2>/dev/null
-      _n="$(git -C "$_cfg_repo" rev-list --count HEAD..origin/master 2>/dev/null)"
-      [ "${_n:-0}" -gt 0 ] &&
-        echo "configfiles: ${_n} new commit(s) upstream — run: git -C $_cfg_repo pull && $_cfg_repo/deploy.sh"
+      if git -C "$_cfg_repo" fetch -q 2>/dev/null; then
+        touch "$_cfg_stamp"
+        _n="$(git -C "$_cfg_repo" rev-list --count HEAD..origin/master 2>/dev/null)"
+        [ "${_n:-0}" -gt 0 ] &&
+          echo "configfiles: ${_n} new commit(s) upstream — run: git -C $_cfg_repo pull && $_cfg_repo/deploy.sh"
+      fi
     } & )
 fi
 unset _cfg_repo _cfg_stamp
