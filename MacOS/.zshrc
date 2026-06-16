@@ -1,6 +1,9 @@
 export PATH=$HOME/bin:$PATH
 export PATH=$HOME/.local/bin:$PATH
 
+# Add Cargo/Rust to PATH if installed (rustup writes ~/.cargo/env).
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
 # If a per-user Perl library exists (~/perl5, set up by local::lib / cpanm),
 # load its env vars so `perl` and CPAN modules resolve from there.
 [ -d "$HOME/perl5/lib/perl5" ] && eval "$(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib=$HOME/perl5)"
