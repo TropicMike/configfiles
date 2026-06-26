@@ -47,6 +47,9 @@ function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -na
 
 alias hex='hexdump -C'
 
+# Always run rsync with -a (archive), -S (sparse), and -P (progress + partial)
+alias rsync='rsync -aSP'
+
 # less options: -X leave output on screen after quitting, -i case-insensitive search
 export LESS=-Xi
 
