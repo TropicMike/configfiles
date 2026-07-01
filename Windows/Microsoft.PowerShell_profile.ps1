@@ -21,15 +21,19 @@ if (Get-Command runemacs -ErrorAction SilentlyContinue) {
 Set-Alias -Name z -Value Clear-Host
 Set-Alias -Name hex -Value Format-Hex
 
-# Pager: Git for Windows ships less.exe; fall back to more.
+# Pager: prefer less (winget jftuga.less or Git for Windows); fall back to more.
+# less options: -X leave output on screen after quitting, -i case-insensitive
+# search (mirrors the LESS export in .aliases).
 if (Get-Command less -ErrorAction SilentlyContinue) {
     Set-Alias -Name m -Value less
+    $env:LESS = '-Xi'
 } else {
     Set-Alias -Name m -Value more
 }
 
 # Long listing including hidden files, newest first, paged (like `ls -lath | less`).
-function lsd { Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | more }
+# Pipes through `m` so it uses the best pager found above.
+function lsd { Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | m }
 
 # Delete Emacs backup (*~) and autosave (#*#) files in the current directory.
 function rmbak { Remove-Item -Path '*~', '#*#' -ErrorAction SilentlyContinue }
