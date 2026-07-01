@@ -13,7 +13,7 @@ This is a personal configuration files repository containing dotfiles, system co
   - Cross-platform editor detection (macOS Emacs.app GUI, standard emacs, or nano fallback)
   - Common command shortcuts (`m`, `z`, `md`, `e`, etc.)
   - OS-aware `ls`/`lsd`, plus utilities (`hex`, `ntop`/`bmon`, `ipa`, `rmbak`)
-  - Once-daily background check for new upstream commits to this repo (`~/Repos/configfiles`), printing a pull + deploy reminder; throttled via a stamp file in `~/.cache`
+  - Background check on every shell start for new upstream commits to this repo (`~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows), printing a pull + deploy reminder
 - `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines`
 
 ### Linux/
@@ -24,6 +24,7 @@ This is a personal configuration files repository containing dotfiles, system co
 - `macos-fix-home-end.sh` - Remaps Home/End keys to beginning/end of line via `DefaultKeyBinding.dict`
 
 ### Windows/
+- `setup.bat` - Bootstrap a new Windows machine: installs the baseline tools (Git, GitHub CLI, less) via winget with `--no-upgrade` so it's idempotent
 - `Microsoft.PowerShell_profile.ps1` - PowerShell profile: equivalents of the shared `.aliases` (`e`, `m`, `z`, `hex`, `lsd`, `rmbak`, `ipa`), colored prompt matching bash/zsh (red for admin, green otherwise), and the upstream-commit check. Kept compatible with Windows PowerShell 5.1 (no ternary, no `&&`/`||` pipeline chains)
 - `aliases.bat` - DOS command aliases (`ls`, `cp`, `xcp`, `mv`, `clear`, `h`, `alias`)
 - `netlogon.bat` - Network logon script
@@ -35,14 +36,14 @@ This is a personal configuration files repository containing dotfiles, system co
   - `enable_right_click_Currentuser.reg` / `disable_right_click_Currentuser.reg`
 
 ### Deploy Scripts
-- `deploy.sh` - Deploys shared + OS-specific files on Linux/macOS. Backs up existing files (`.bak`), skips unchanged, and can re-source changed shell files. Run with `sudo` to deploy to root's home directory.
-- `deploy.bat` - Windows equivalent (`.emacs`, `aliases.bat`, and the PowerShell profile — installed to `$PROFILE.CurrentUserCurrentHost` for both Windows PowerShell 5.1 and pwsh 7 if present).
+- `deploy.sh` - Deploys shared + OS-specific files on Linux/macOS, plus Git Bash on Windows (installs `Linux/.bashrc` there too). Backs up existing files (`.bak`), skips unchanged, and can re-source changed shell files. Run with `sudo` to deploy to root's home directory.
+- `deploy.bat` - Windows equivalent (`.emacs`, `aliases.bat`, the PowerShell profile — installed to `$PROFILE.CurrentUserCurrentHost` for both Windows PowerShell 5.1 and pwsh 7 if present — and `.aliases`/`.bashrc` for Git Bash if installed).
 
 ## Working with This Repository
 
 When modifying files:
 - Keep the editor-detection logic in `.aliases` cross-platform (macOS GUI, generic, nano fallback)
-- `.aliases` is sourced by both bash and zsh — keep it POSIX-portable across the two
+- `.aliases` is sourced by both bash and zsh — keep it portable across those two shells (bash/zsh constructs like `[[ ]]`, `function`, and `&>` are fine; plain POSIX sh is not a target)
 - Line endings and encodings are enforced by `.gitattributes`:
   - Shell scripts and dotfiles use Unix line endings (LF)
   - Batch files and PowerShell scripts use DOS line endings (CRLF)

@@ -15,6 +15,16 @@ for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "$PROFILE.Curr
 where pwsh >nul 2>&1
 if not errorlevel 1 for /f "usebackq delims=" %%p in (`pwsh -NoProfile -Command "$PROFILE.CurrentUserCurrentHost"`) do call :deploy_ps_profile "%%p"
 
+rem Git Bash (if installed) sources ~/.bashrc like Linux and can use the
+rem shared .aliases, so deploy both.
+if exist "%ProgramFiles%\Git\bin\bash.exe" goto :have_gitbash
+if exist "%LocalAppData%\Programs\Git\bin\bash.exe" goto :have_gitbash
+goto :end_gitbash
+:have_gitbash
+call :backup_and_copy "%SCRIPT_DIR%.aliases" "%USERPROFILE%\.aliases"
+call :backup_and_copy "%SCRIPT_DIR%Linux\.bashrc" "%USERPROFILE%\.bashrc"
+:end_gitbash
+
 echo.
 echo Done.
 goto :eof

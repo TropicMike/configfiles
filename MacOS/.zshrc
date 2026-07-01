@@ -1,5 +1,8 @@
-export PATH=$HOME/bin:$PATH
-export PATH=$HOME/.local/bin:$PATH
+# The user-specific dirs are only added for non-root users — root shouldn't
+# run things out of a user's home (matches the .bashrc behavior on Linux).
+if [ "$EUID" -ne 0 ]; then
+  export PATH=$HOME/.local/bin:$HOME/bin:$PATH
+fi
 
 # Add Cargo/Rust to PATH if installed (rustup writes ~/.cargo/env).
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"

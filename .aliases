@@ -76,6 +76,8 @@ function ipa() {
 # Note: this fetches from the remote on each shell, and the reminder reprints
 # every shell until you pull.
 _cfg_repo=~/Repos/configfiles
+# On Windows (Git Bash), the clone lives at C:\Repos\configfiles instead.
+[ -d "$_cfg_repo/.git" ] || _cfg_repo=/c/Repos/configfiles
 if [ -d "$_cfg_repo/.git" ]; then
   ( {
       if git -C "$_cfg_repo" fetch -q 2>/dev/null; then

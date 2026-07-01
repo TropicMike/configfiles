@@ -1,5 +1,7 @@
 # configfiles
 
+[![CI](https://github.com/TropicMike/configfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/TropicMike/configfiles/actions/workflows/ci.yml)
+
 Personal configuration files and dotfiles for Linux, macOS, and Windows environments. Managed in version control for backup and synchronization across systems. Deployment is manual.
 
 ## Usage
@@ -14,7 +16,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 
 | File | Description |
 |------|-------------|
-| `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks once a day for new upstream commits to this repo and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`) |
+| `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks in the background on every shell start for new upstream commits to this repo and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows) |
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
 
 #### Aliases / Functions (`.aliases`)
@@ -51,6 +53,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 
 | File | Description |
 |------|-------------|
+| `setup.bat` | Bootstrap a new Windows machine — installs the baseline tools (Git, GitHub CLI, less) via winget; idempotent |
 | `Microsoft.PowerShell_profile.ps1` | PowerShell profile — equivalents of the shared aliases (`e`, `m`, `z`, `hex`, `lsd`, `rmbak`, `ipa`), colored user@host:dir prompt (red for admin, green otherwise), and the upstream-commit check |
 | `aliases.bat` | DOS aliases: `ls`, `cp`, `xcp`, `mv`, `clear`, `h`, `alias` |
 | `netlogon.bat` | Network logon script |
@@ -69,8 +72,8 @@ Registry files to enable or disable the Windows context menu:
 
 | File | Description |
 |------|-------------|
-| `deploy.sh` | Deploys config files on Linux/macOS — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
-| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, and the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed) — backs up existing files, skips unchanged |
+| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
+| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged |
 
 ## Notes
 
