@@ -24,6 +24,7 @@ This is a personal configuration files repository containing dotfiles, system co
 - `macos-fix-home-end.sh` - Remaps Home/End keys to beginning/end of line via `DefaultKeyBinding.dict`
 
 ### Windows/
+- `Microsoft.PowerShell_profile.ps1` - PowerShell profile: equivalents of the shared `.aliases` (`e`, `m`, `z`, `hex`, `lsd`, `rmbak`, `ipa`), colored prompt matching bash/zsh (red for admin, green otherwise), and the upstream-commit check. Kept compatible with Windows PowerShell 5.1 (no ternary, no `&&`/`||` pipeline chains)
 - `aliases.bat` - DOS command aliases (`ls`, `cp`, `xcp`, `mv`, `clear`, `h`, `alias`)
 - `netlogon.bat` - Network logon script
 - `run-bi.bat` - BI application launcher
@@ -35,7 +36,7 @@ This is a personal configuration files repository containing dotfiles, system co
 
 ### Deploy Scripts
 - `deploy.sh` - Deploys shared + OS-specific files on Linux/macOS. Backs up existing files (`.bak`), skips unchanged, and can re-source changed shell files. Run with `sudo` to deploy to root's home directory.
-- `deploy.bat` - Windows equivalent (`.emacs`, `aliases.bat`).
+- `deploy.bat` - Windows equivalent (`.emacs`, `aliases.bat`, and the PowerShell profile — installed to `$PROFILE.CurrentUserCurrentHost` for both Windows PowerShell 5.1 and pwsh 7 if present).
 
 ## Working with This Repository
 
@@ -44,8 +45,10 @@ When modifying files:
 - `.aliases` is sourced by both bash and zsh — keep it POSIX-portable across the two
 - Line endings and encodings are enforced by `.gitattributes`:
   - Shell scripts and dotfiles use Unix line endings (LF)
-  - Batch files use DOS line endings (CRLF)
+  - Batch files and PowerShell scripts use DOS line endings (CRLF)
   - Registry files use UTF-16 encoding with BOM
+- Keep `Windows/Microsoft.PowerShell_profile.ps1` compatible with Windows PowerShell 5.1
 - Maintain existing alias naming conventions and patterns
+- CI (`.github/workflows/ci.yml`) runs shellcheck, bash/zsh syntax + source checks, a `deploy.sh` smoke test, and PSScriptAnalyzer on every push — new shell files should be added to those checks
 
 Deployment is driven by `deploy.sh` (Linux/macOS) and `deploy.bat` (Windows), which back up existing files before overwriting.

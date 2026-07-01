@@ -4,6 +4,7 @@
 if [ -n "${BASH_SOURCE[0]:-}" ]; then
   _self="${BASH_SOURCE[0]}"
 elif [ -n "${ZSH_VERSION:-}" ]; then
+  # shellcheck disable=SC2296  # zsh-only expansion, guarded by ZSH_VERSION
   _self="${(%):-%x}"  # zsh: path of the file currently being sourced
 else
   _self="$0"

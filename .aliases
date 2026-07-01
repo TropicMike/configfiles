@@ -43,7 +43,7 @@ else
   alias lsd='ls --color=always -lath|less -R'
 fi
 
-function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*' -delete; }
+function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*#' -delete; }
 
 alias hex='hexdump -C'
 

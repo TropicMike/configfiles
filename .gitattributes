@@ -10,5 +10,11 @@
 # Windows batch files: DOS line endings (CRLF)
 *.bat     text eol=crlf
 
+# PowerShell scripts: DOS line endings (CRLF)
+*.ps1     text eol=crlf
+
+# GitHub Actions workflows: Unix line endings (LF)
+*.yml     text eol=lf
+
 # Windows registry files: UTF-16 with BOM, leave bytes untouched
 *.reg     -text

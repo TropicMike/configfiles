@@ -27,7 +27,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | `md` | `mkdir` |
 | `ls` | `ls --color` (Linux) / `ls -G` (macOS) |
 | `lsd` | Long listing with color, sorted by time, paged |
-| `rmbak` | Delete `*~` and `#*` backup files in current directory |
+| `rmbak` | Delete Emacs backup (`*~`) and autosave (`#*#`) files in current directory |
 | `hex` | `hexdump -C` |
 | `open` | `xdg-open` (Linux only) |
 | `bc` | `bc -l` (math library) |
@@ -51,6 +51,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 
 | File | Description |
 |------|-------------|
+| `Microsoft.PowerShell_profile.ps1` | PowerShell profile — equivalents of the shared aliases (`e`, `m`, `z`, `hex`, `lsd`, `rmbak`, `ipa`), colored user@host:dir prompt (red for admin, green otherwise), and the upstream-commit check |
 | `aliases.bat` | DOS aliases: `ls`, `cp`, `xcp`, `mv`, `clear`, `h`, `alias` |
 | `netlogon.bat` | Network logon script |
 | `run-bi.bat` | BI application launcher |
@@ -69,11 +70,12 @@ Registry files to enable or disable the Windows context menu:
 | File | Description |
 |------|-------------|
 | `deploy.sh` | Deploys config files on Linux/macOS — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
-| `deploy.bat` | Deploys config files on Windows — backs up existing files, skips unchanged |
+| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, and the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed) — backs up existing files, skips unchanged |
 
 ## Notes
 
 - Line endings and encodings are enforced via `.gitattributes`:
   - Shell scripts and dotfiles use Unix line endings (LF)
-  - Batch files use DOS line endings (CRLF)
+  - Batch files and PowerShell scripts use DOS line endings (CRLF)
   - Registry files use UTF-16 encoding with BOM
+- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, a `deploy.sh` smoke test, and PSScriptAnalyzer on every push

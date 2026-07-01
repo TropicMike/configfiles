@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  shell:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zsh
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq zsh
+
+      # SC1090/SC1091 (can't follow sourced files) are excluded because every
+      # sourced file is checked directly here anyway. -s bash is needed for
+      # the files without a shebang (.aliases, .bashrc, macos-fix-home-end.sh).
+      - name: shellcheck
+        run: shellcheck -s bash -S warning -e SC1090,SC1091 deploy.sh .aliases Linux/.bashrc MacOS/macos-fix-home-end.sh
+
+      - name: bash syntax check
+        run: |
+          for f in deploy.sh .aliases Linux/.bashrc MacOS/macos-fix-home-end.sh; do
+            bash -n "$f"
+          done
+
+      - name: zsh syntax check
+        run: |
+          zsh -n .aliases
+          zsh -n MacOS/.zshrc
+
+      # Runs first among the behavior tests so ~/.aliases and ~/.bashrc exist
+      # for the source checks below (the rc files source ~/.aliases).
+      - name: deploy.sh smoke test
+        run: |
+          ./deploy.sh
+          test -f "$HOME/.aliases"
+          test -f "$HOME/.emacs"
+          test -f "$HOME/.bashrc"
+          # Second run must detect everything as already deployed.
+          out="$(./deploy.sh)"
+          echo "$out" | grep -q "UNCHANGED"
+
+      - name: source .aliases in bash and zsh
+        run: |
+          bash -c 'source ./.aliases && type ipa >/dev/null && type rmbak >/dev/null'
+          zsh -c 'source ./.aliases && type ipa >/dev/null && type rmbak >/dev/null'
+
+      - name: source rc files
+        run: |
+          bash -i -c 'source ./Linux/.bashrc && [ -n "$PS1" ]'
+          zsh -c 'source ./MacOS/.zshrc && [ -n "$PROMPT" ]'
+
+  powershell:
+    name: PowerShell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Parses all .ps1 files and lints them; fails the build on Error-severity
+      # findings, prints Warnings for information.
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $results = Invoke-ScriptAnalyzer -Path Windows -Recurse
+          if ($results) {
+            $results | Format-Table RuleName, Severity, ScriptName, Line, Message -AutoSize | Out-String -Width 200 | Write-Host
+          }
+          if ($results | Where-Object Severity -eq 'Error') { exit 1 }
