@@ -53,6 +53,32 @@ jobs:
           bash -i -c 'source ./Linux/.bashrc && [ -n "$PS1" ]'
           zsh -c 'source ./MacOS/.zshrc && [ -n "$PROMPT" ]'
 
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Exercises the Darwin case in deploy.sh (installs .zshrc).
+      - name: deploy.sh smoke test
+        run: |
+          ./deploy.sh
+          test -f "$HOME/.aliases"
+          test -f "$HOME/.emacs"
+          test -f "$HOME/.zshrc"
+
+      # Runs the Darwin-only branches for real: ls -G aliases, Emacs.app
+      # detection, and the xcrun LIBRARY_PATH export in .zshrc.
+      - name: source .aliases and .zshrc in macOS zsh
+        run: |
+          zsh -c 'source "$HOME/.aliases" && type ipa >/dev/null && type rmbak >/dev/null && alias ls | grep -q -- "-G"'
+          zsh -c 'source "$HOME/.zshrc" && [ -n "$PROMPT" ] && [ -n "$LIBRARY_PATH" ]'
+
+      - name: macos-fix-home-end.sh
+        run: |
+          bash MacOS/macos-fix-home-end.sh
+          test -f "$HOME/Library/KeyBindings/DefaultKeyBinding.dict"
+
   powershell:
     name: PowerShell scripts
     runs-on: ubuntu-latest

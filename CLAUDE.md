@@ -50,6 +50,6 @@ When modifying files:
   - Registry files use UTF-16 encoding with BOM
 - Keep `Windows/Microsoft.PowerShell_profile.ps1` compatible with Windows PowerShell 5.1
 - Maintain existing alias naming conventions and patterns
-- CI (`.github/workflows/ci.yml`) runs shellcheck, bash/zsh syntax + source checks, a `deploy.sh` smoke test, and PSScriptAnalyzer on every push — new shell files should be added to those checks
+- CI (`.github/workflows/ci.yml`) runs shellcheck, bash/zsh syntax + source checks, `deploy.sh` smoke tests on both Linux and macOS runners (the macOS job exercises the Darwin-only branches), and PSScriptAnalyzer on every push — new shell files should be added to those checks
 
 Deployment is driven by `deploy.sh` (Linux/macOS) and `deploy.bat` (Windows), which back up existing files before overwriting.

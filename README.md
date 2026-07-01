@@ -81,4 +81,4 @@ Registry files to enable or disable the Windows context menu:
   - Shell scripts and dotfiles use Unix line endings (LF)
   - Batch files and PowerShell scripts use DOS line endings (CRLF)
   - Registry files use UTF-16 encoding with BOM
-- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, a `deploy.sh` smoke test, and PSScriptAnalyzer on every push
+- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, `deploy.sh` smoke tests on Linux and macOS (covering the Darwin-only branches), and PSScriptAnalyzer on every push
