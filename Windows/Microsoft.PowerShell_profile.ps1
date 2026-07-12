@@ -16,6 +16,10 @@ if (Get-Command runemacs -ErrorAction SilentlyContinue) {
     Set-Alias -Name e -Value notepad
 }
 
+# Disable mouse click handling in Claude Code so terminal-native click
+# behavior (text selection, etc.) keeps working.
+$env:CLAUDE_CODE_DISABLE_MOUSE_CLICKS = '1'
+
 # Command shortcuts mirroring .aliases. md/mkdir, h (history), cp, mv, and ls
 # already exist as PowerShell built-in aliases, so only the gaps are filled.
 Set-Alias -Name z -Value Clear-Host
