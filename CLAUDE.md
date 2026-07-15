@@ -10,7 +10,7 @@ This is a personal configuration files repository containing dotfiles, system co
 
 ### Shared Configuration (repo root)
 - `.aliases` - Shared aliases and shell functions, sourced by both bash and zsh:
-  - Cross-platform editor detection (macOS Emacs.app GUI, standard emacs, or nano fallback)
+  - Simple editor detection (`e` and `EDITOR` are emacs if installed, nano otherwise)
   - Common command shortcuts (`m`, `z`, `md`, `e`, etc.)
   - OS-aware `ls`/`lsd`, plus utilities (`hex`, `ntop`/`bmon`, `ipa`, `rmbak`)
   - Background check on every shell start for new upstream commits to this repo (`~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows), printing a pull + deploy reminder
@@ -42,7 +42,7 @@ This is a personal configuration files repository containing dotfiles, system co
 ## Working with This Repository
 
 When modifying files:
-- Keep the editor-detection logic in `.aliases` cross-platform (macOS GUI, generic, nano fallback)
+- Keep the editor-detection logic in `.aliases` simple: emacs if installed, nano fallback
 - `.aliases` is sourced by both bash and zsh — keep it portable across those two shells (bash/zsh constructs like `[[ ]]`, `function`, and `&>` are fine; plain POSIX sh is not a target)
 - Line endings and encodings are enforced by `.gitattributes`:
   - Shell scripts and dotfiles use Unix line endings (LF)
