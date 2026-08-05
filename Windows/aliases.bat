@@ -12,4 +12,4 @@ rem 'alias' with no args lists all macros; with args it defines a new one.
 DOSKEY alias=if ".$*." == ".." ( DOSKEY /MACROS ) else ( DOSKEY $* )
 rem Disable mouse click handling in Claude Code so terminal-native click
 rem behavior (text selection, etc.) keeps working.
-set CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
+set CLAUDE_CODE_DISABLE_MOUSE_CLICKS=0

@@ -19,7 +19,7 @@ fi
 
 # Disable mouse click handling in Claude Code so terminal-native click
 # behavior (text selection, etc.) keeps working.
-export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
+export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=0
 
 # Prompt: user@host:dir%  — username red for root / green for normal users,
 # hostname yellow, dir blue. zsh syntax: %{...%} wraps non-printing escapes,

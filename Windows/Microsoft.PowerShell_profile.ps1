@@ -18,7 +18,7 @@ if (Get-Command runemacs -ErrorAction SilentlyContinue) {
 
 # Disable mouse click handling in Claude Code so terminal-native click
 # behavior (text selection, etc.) keeps working.
-$env:CLAUDE_CODE_DISABLE_MOUSE_CLICKS = '1'
+$env:CLAUDE_CODE_DISABLE_MOUSE_CLICKS = '0'
 
 # Command shortcuts mirroring .aliases. md/mkdir, h (history), cp, mv, and ls
 # already exist as PowerShell built-in aliases, so only the gaps are filled.
