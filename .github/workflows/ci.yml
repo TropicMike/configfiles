@@ -39,6 +39,7 @@ jobs:
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.bashrc"
+          jq -e '.statusLine.type == "command"' "$HOME/.claude/settings.json"
           # Second run must detect everything as already deployed.
           out="$(./deploy.sh)"
           echo "$out" | grep -q "UNCHANGED"
@@ -66,6 +67,10 @@ jobs:
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.zshrc"
+          # Merge must keep existing settings alongside the statusLine.
+          echo '{"model":"opus","statusLine":{"type":"static"}}' > "$HOME/.claude/settings.json"
+          ./deploy.sh
+          jq -e '.model == "opus" and .statusLine.type == "command"' "$HOME/.claude/settings.json"
 
       # Runs the Darwin-only branches for real: ls -G aliases, Emacs.app
       # detection, and the xcrun LIBRARY_PATH export in .zshrc.

@@ -38,6 +38,42 @@ backup_and_copy() {
   CHANGED_SHELL_FILES+=("$dest")
 }
 
+# Deep-merge a JSON snippet into an existing JSON file (snippet keys win),
+# leaving the destination's other settings intact. Requires jq.
+merge_json() {
+  local src="$1" dest="$2" tmp
+  if [ ! -f "$src" ]; then
+    echo "  SKIP $(basename "$src") (not found)"
+    return
+  fi
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "  SKIP $(basename "$src") (jq not installed)"
+    return
+  fi
+  mkdir -p "$(dirname "$dest")"
+  tmp="$(mktemp "$dest.XXXXXX")"
+  if [ -f "$dest" ]; then
+    if ! jq -s '.[0] * .[1]' "$dest" "$src" >"$tmp" 2>/dev/null; then
+      rm -f "$tmp"
+      echo "  SKIP $dest (existing file is not valid JSON)"
+      return
+    fi
+  else
+    jq . "$src" >"$tmp"
+  fi
+  if [ -f "$dest" ] && diff -q "$tmp" "$dest" >/dev/null 2>&1; then
+    rm -f "$tmp"
+    echo "  UNCHANGED $(basename "$dest")"
+    return
+  fi
+  if [ -f "$dest" ]; then
+    cp "$dest" "$dest.bak"
+    echo "  BACKUP $dest -> $dest.bak"
+  fi
+  mv "$tmp" "$dest"
+  echo "  MERGED $src -> $dest"
+}
+
 echo "Deploying config files to $DEPLOY_HOME"
 echo "OS: $(uname)"
 if [ "$(id -u)" -ne 0 ]; then
@@ -47,6 +83,7 @@ echo ""
 
 backup_and_copy "$SCRIPT_DIR/.aliases" "$DEPLOY_HOME/.aliases"
 backup_and_copy "$SCRIPT_DIR/.emacs" "$DEPLOY_HOME/.emacs"
+merge_json "$SCRIPT_DIR/claude-prompt.json" "$DEPLOY_HOME/.claude/settings.json"
 
 case "$(uname)" in
   Linux)
