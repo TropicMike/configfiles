@@ -18,6 +18,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 |------|-------------|
 | `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks in the background on every shell start for new upstream commits to this repo and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows) |
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
+| `claude-prompt.json` | Claude Code `statusLine` snippet — colored user@host:dir prompt (red for root, green otherwise) plus model, session cost, and context-window usage. Requires `jq`. Not deployed; merge it into `~/.claude/settings.json` manually |
 
 #### Aliases / Functions (`.aliases`)
 

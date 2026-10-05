@@ -15,6 +15,7 @@ This is a personal configuration files repository containing dotfiles, system co
   - OS-aware `ls`/`lsd`, plus utilities (`hex`, `ntop`/`bmon`, `ipa`, `rmbak`)
   - Background check on every shell start for new upstream commits to this repo (`~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows), printing a pull + deploy reminder
 - `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines`
+- `claude-prompt.json` - Claude Code `statusLine` setting (user@host:dir prompt matching the shell prompts, plus model, cost, and context usage; requires `jq`). Not deployed by the deploy scripts — merged into `~/.claude/settings.json` by hand
 
 ### Linux/
 - `.bashrc` - Bash initialization: guards against non-interactive shells, sets PATH, sources `.aliases`, sets prompt (red for root, green for user)

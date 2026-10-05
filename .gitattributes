@@ -18,3 +18,6 @@
 
 # Windows registry files: UTF-16 with BOM, leave bytes untouched
 *.reg     -text
+
+# JSON config: Unix line endings (LF)
+*.json    text eol=lf
