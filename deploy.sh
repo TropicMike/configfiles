@@ -50,6 +50,12 @@ merge_json() {
     echo "  SKIP $(basename "$src") (jq not installed)"
     return
   fi
+  # Validate the snippet up front so a merge failure below can only mean the
+  # existing destination is bad.
+  if ! jq empty "$src" 2>/dev/null; then
+    echo "  SKIP $(basename "$src") (not valid JSON)"
+    return
+  fi
   mkdir -p "$(dirname "$dest")"
   tmp="$(mktemp "$dest.XXXXXX")"
   if [ -f "$dest" ]; then
@@ -59,11 +65,7 @@ merge_json() {
       return
     fi
   else
-    if ! jq . "$src" >"$tmp"; then
-      rm -f "$tmp"
-      echo "  SKIP $src (not valid JSON)"
-      return
-    fi
+    jq . "$src" >"$tmp"
   fi
   if [ -f "$dest" ] && diff -q "$tmp" "$dest" >/dev/null 2>&1; then
     rm -f "$tmp"

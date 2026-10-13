@@ -44,6 +44,32 @@ jobs:
           out="$(./deploy.sh)"
           echo "$out" | grep -q "UNCHANGED"
 
+      # An invalid claude-prompt.json must be skipped without creating or
+      # touching settings.json. Runs a copy of deploy.sh next to a broken
+      # snippet, against a throwaway HOME (the other files SKIP as not found).
+      - name: deploy.sh skips invalid claude-prompt.json
+        run: |
+          work="$(mktemp -d)"
+          cp deploy.sh "$work/"
+          echo '{"statusLine":' > "$work/claude-prompt.json"
+          export HOME="$work/home"
+          mkdir -p "$HOME"
+          # Fresh install: no settings.json may be created.
+          "$work/deploy.sh" | tee "$work/out1"
+          grep -q "SKIP claude-prompt.json (not valid JSON)" "$work/out1"
+          test ! -e "$HOME/.claude/settings.json"
+          # Existing settings.json: must be left byte-for-byte unchanged, and
+          # the snippet (not the destination) must be blamed.
+          mkdir -p "$HOME/.claude"
+          echo '{"model":"opus"}' > "$HOME/.claude/settings.json"
+          cp "$HOME/.claude/settings.json" "$work/before.json"
+          "$work/deploy.sh" | tee "$work/out2"
+          grep -q "SKIP claude-prompt.json (not valid JSON)" "$work/out2"
+          # (not "! grep": a negated command never trips bash -e)
+          if grep -q "existing file is not valid JSON" "$work/out2"; then exit 1; fi
+          cmp "$work/before.json" "$HOME/.claude/settings.json"
+          test ! -e "$HOME/.claude/settings.json.bak"
+
       - name: source .aliases in bash and zsh
         run: |
           bash -c 'source ./.aliases && type ipa >/dev/null && type rmbak >/dev/null'
