@@ -21,6 +21,10 @@ fi
 # behavior (text selection, etc.) keeps working.
 export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=0
 
+# Don't cycle through completion matches on repeated Tab — just list them
+# (AUTO_MENU is on by default in zsh).
+unsetopt AUTO_MENU
+
 # Prompt: user@host:dir%  — username red for root / green for normal users,
 # hostname yellow, dir blue. zsh syntax: %{...%} wraps non-printing escapes,
 # %F{color} sets color, %B bold (%b/%f reset), %n=user, %m=host, %1~=cwd
