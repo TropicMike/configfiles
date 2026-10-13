@@ -25,6 +25,10 @@ export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=0
 # (AUTO_MENU is on by default in zsh).
 unsetopt AUTO_MENU
 
+# Bash-style completion: first Tab completes the common prefix, second Tab
+# lists the ambiguous matches.
+setopt BASH_AUTO_LIST
+
 # Prompt: user@host:dir%  — username red for root / green for normal users,
 # hostname yellow, dir blue. zsh syntax: %{...%} wraps non-printing escapes,
 # %F{color} sets color, %B bold (%b/%f reset), %n=user, %m=host, %1~=cwd
