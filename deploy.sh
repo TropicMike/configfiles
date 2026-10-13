@@ -59,7 +59,11 @@ merge_json() {
       return
     fi
   else
-    jq . "$src" >"$tmp"
+    if ! jq . "$src" >"$tmp"; then
+      rm -f "$tmp"
+      echo "  SKIP $src (not valid JSON)"
+      return
+    fi
   fi
   if [ -f "$dest" ] && diff -q "$tmp" "$dest" >/dev/null 2>&1; then
     rm -f "$tmp"
