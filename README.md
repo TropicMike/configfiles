@@ -32,6 +32,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | `lsd` | Long listing with color, sorted by time, paged |
 | `rmbak` | Delete Emacs backup (`*~`) and autosave (`#*#`) files in current directory |
 | `hex` | `hexdump -C` |
+| `rsync` | `rsync -aSP` (archive, sparse, progress + partial) |
 | `open` | `xdg-open` (Linux only) |
 | `bc` | `bc -l` (math library) |
 | `ntop` | `bmon` network monitor |

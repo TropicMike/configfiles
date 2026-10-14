@@ -17,8 +17,9 @@ if command -v xcrun &>/dev/null; then
   export LIBRARY_PATH="$(xcrun --show-sdk-path)/usr/lib"
 fi
 
-# Disable mouse click handling in Claude Code so terminal-native click
-# behavior (text selection, etc.) keeps working.
+# Claude Code mouse click handling: 0 (set here) keeps it enabled; set to 1
+# to disable it so terminal-native click behavior (text selection, etc.)
+# keeps working.
 export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=0
 
 # Don't cycle through completion matches on repeated Tab — just list them
