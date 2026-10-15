@@ -33,6 +33,7 @@ backup_and_copy() {
     cp "$dest" "$dest.bak"
     echo "  BACKUP $dest -> $dest.bak"
   fi
+  mkdir -p "$(dirname "$dest")"
   cp "$src" "$dest"
   echo "  INSTALLED $dest"
   CHANGED_SHELL_FILES+=("$dest")
@@ -91,6 +92,16 @@ backup_and_copy "$SCRIPT_DIR/.aliases" "$DEPLOY_HOME/.aliases"
 backup_and_copy "$SCRIPT_DIR/.emacs" "$DEPLOY_HOME/.emacs"
 merge_json "$SCRIPT_DIR/claude-prompt.json" "$DEPLOY_HOME/.claude/settings.json"
 
+# OpenCode reads its global config from $XDG_CONFIG_HOME/opencode (default
+# ~/.config/opencode). Ignore XDG_CONFIG_HOME under sudo, where it would point
+# at the invoking user's config rather than root's.
+if [ "$(id -u)" -eq 0 ]; then
+  OPENCODE_DIR="$DEPLOY_HOME/.config/opencode"
+else
+  OPENCODE_DIR="${XDG_CONFIG_HOME:-$DEPLOY_HOME/.config}/opencode"
+fi
+backup_and_copy "$SCRIPT_DIR/opencode/opencode.jsonc" "$OPENCODE_DIR/opencode.jsonc"
+
 case "$(uname)" in
   Linux)
     backup_and_copy "$SCRIPT_DIR/Linux/.bashrc" "$DEPLOY_HOME/.bashrc"
@@ -109,11 +120,11 @@ esac
 
 echo ""
 
-# Determine sourceable files (exclude .emacs which can't be shell-sourced)
+# Determine sourceable files (exclude non-shell configs like .emacs)
 SOURCEABLE=()
 for f in "${CHANGED_SHELL_FILES[@]}"; do
   case "$f" in
-    *.emacs) ;;
+    *.emacs|*.jsonc) ;;
     *) SOURCEABLE+=("$f") ;;
   esac
 done

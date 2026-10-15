@@ -16,6 +16,7 @@ This is a personal configuration files repository containing dotfiles, system co
   - Background check on every shell start for new upstream commits to this repo (`~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows), printing a pull + deploy reminder
 - `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines`
 - `claude-prompt.json` - Claude Code `statusLine` setting (user@host:dir prompt matching the shell prompts, plus model, cost, and context usage; requires `jq`). `deploy.sh` deep-merges it into `~/.claude/settings.json` with jq, preserving other settings; skipped if jq is missing
+- `opencode/opencode.jsonc` - Global OpenCode config (V2 shape): `glm-53-flash-worker` primary agent plus a hidden, read-only `glm-advisor` subagent. Deployed to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`; `XDG_CONFIG_HOME` is ignored under sudo)
 
 ### Linux/
 - `.bashrc` - Bash initialization: guards against non-interactive shells, sets PATH, sources `.aliases`, sets prompt (red for root, green for user)
@@ -37,8 +38,8 @@ This is a personal configuration files repository containing dotfiles, system co
   - `enable_right_click_Currentuser.reg` / `disable_right_click_Currentuser.reg`
 
 ### Deploy Scripts
-- `deploy.sh` - Deploys shared + OS-specific files on Linux/macOS, plus Git Bash on Windows (installs `Linux/.bashrc` there too). Also merges `claude-prompt.json` into `~/.claude/settings.json` via jq. Backs up existing files (`.bak`), skips unchanged, and can re-source changed shell files. Run with `sudo` to deploy to root's home directory.
-- `deploy.bat` - Windows equivalent (`.emacs`, `aliases.bat`, the PowerShell profile — installed to `$PROFILE.CurrentUserCurrentHost` for both Windows PowerShell 5.1 and pwsh 7 if present — and `.aliases`/`.bashrc` for Git Bash if installed).
+- `deploy.sh` - Deploys shared + OS-specific files on Linux/macOS, plus Git Bash on Windows (installs `Linux/.bashrc` there too). Also merges `claude-prompt.json` into `~/.claude/settings.json` via jq and installs the OpenCode config. Backs up existing files (`.bak`), skips unchanged, and can re-source changed shell files. Run with `sudo` to deploy to root's home directory.
+- `deploy.bat` - Windows equivalent (`.emacs`, `aliases.bat`, the OpenCode config to `%XDG_CONFIG_HOME%\opencode` or `%USERPROFILE%\.config\opencode`, the PowerShell profile — installed to `$PROFILE.CurrentUserCurrentHost` for both Windows PowerShell 5.1 and pwsh 7 if present — and `.aliases`/`.bashrc` for Git Bash if installed).
 
 ## Working with This Repository
 

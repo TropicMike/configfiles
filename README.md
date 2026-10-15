@@ -19,6 +19,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks in the background on every shell start for new upstream commits to this repo and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows) |
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
 | `claude-prompt.json` | Claude Code `statusLine` snippet — colored user@host:dir prompt (red for root, green otherwise) plus model, session cost, and context-window usage. `deploy.sh` merges it into `~/.claude/settings.json` (requires `jq`; other settings are kept) |
+| `opencode/opencode.jsonc` | Global OpenCode config — see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Deployed to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
 
 #### Aliases / Functions (`.aliases`)
 
@@ -37,6 +38,15 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | `bc` | `bc -l` (math library) |
 | `ntop` | `bmon` network monitor |
 | `ipa` | Show IP addresses for all interfaces |
+
+#### OpenCode agents (`opencode/opencode.jsonc`)
+
+A fast primary worker plus a strategic advisor subagent, in OpenCode's native V2 config shape (`agents`, `system`, `permissions` as ordered `{ action, resource, effect }` rules, `request.body`):
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `glm-53-flash-worker` | `opencode-go/glm-5.3-flash` | Default primary agent for routine engineering work (editing, commands, orchestration); 30 steps |
+| `glm-advisor` | `opencode-go/glm-5.3` | Hidden subagent for second opinions, plan critique, and architecture tradeoffs; 15 steps, temperature 0.3. Read-only: allows `read`, `glob`, `grep`, `webfetch`, `question`; denies `edit`, `shell`, `subagent`, `todowrite`. Its inline system prompt expects all context in the prompt and answers as CONCLUSION / REASONING / WATCH OUT |
 
 ### Linux/
 
@@ -74,8 +84,8 @@ Registry files to enable or disable the Windows context menu:
 
 | File | Description |
 |------|-------------|
-| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — merges `claude-prompt.json` into `~/.claude/settings.json` — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
-| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged |
+| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — merges `claude-prompt.json` into `~/.claude/settings.json`, installs the OpenCode config — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
+| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the OpenCode config, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged |
 
 ## Notes
 

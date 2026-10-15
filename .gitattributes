@@ -21,3 +21,4 @@
 
 # JSON config: Unix line endings (LF)
 *.json    text eol=lf
+*.jsonc   text eol=lf

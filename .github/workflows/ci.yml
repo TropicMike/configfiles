@@ -39,6 +39,7 @@ jobs:
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.bashrc"
+          test -f "$HOME/.config/opencode/opencode.jsonc"
           jq -e '.statusLine.type == "command"' "$HOME/.claude/settings.json"
           # Second run must detect everything as already deployed.
           out="$(./deploy.sh)"
@@ -93,6 +94,7 @@ jobs:
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.zshrc"
+          test -f "$HOME/.config/opencode/opencode.jsonc"
           # Merge must keep existing settings alongside the statusLine.
           echo '{"model":"opus","statusLine":{"type":"static"}}' > "$HOME/.claude/settings.json"
           ./deploy.sh
