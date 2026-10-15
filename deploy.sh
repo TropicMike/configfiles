@@ -100,7 +100,14 @@ if [ "$(id -u)" -eq 0 ]; then
 else
   OPENCODE_DIR="${XDG_CONFIG_HOME:-$DEPLOY_HOME/.config}/opencode"
 fi
-backup_and_copy "$SCRIPT_DIR/opencode/opencode.jsonc" "$OPENCODE_DIR/opencode.jsonc"
+# Only deploy if OpenCode is installed: on PATH, or in its installer's default
+# location (~/.opencode/bin, which may not be on PATH yet, e.g. under sudo or
+# before the new rc file is sourced).
+if command -v opencode >/dev/null 2>&1 || [ -x "$DEPLOY_HOME/.opencode/bin/opencode" ]; then
+  backup_and_copy "$SCRIPT_DIR/opencode/opencode.jsonc" "$OPENCODE_DIR/opencode.jsonc"
+else
+  echo "  SKIP opencode.jsonc (opencode not installed)"
+fi
 
 case "$(uname)" in
   Linux)

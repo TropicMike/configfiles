@@ -19,7 +19,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks in the background on every shell start for new upstream commits to this repo and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows) |
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
 | `claude-prompt.json` | Claude Code `statusLine` snippet — colored user@host:dir prompt (red for root, green otherwise) plus model, session cost, and context-window usage. `deploy.sh` merges it into `~/.claude/settings.json` (requires `jq`; other settings are kept) |
-| `opencode/opencode.jsonc` | Global OpenCode config — see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Deployed to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
+| `opencode/opencode.jsonc` | Global OpenCode config — see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
 
 #### Aliases / Functions (`.aliases`)
 

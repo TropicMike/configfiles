@@ -11,8 +11,17 @@ call :backup_and_copy "%SCRIPT_DIR%Windows\aliases.bat" "%USERPROFILE%\aliases.b
 rem OpenCode reads its global config from %XDG_CONFIG_HOME%\opencode, falling
 rem back to %USERPROFILE%\.config\opencode.
 if defined XDG_CONFIG_HOME (set "OPENCODE_DIR=%XDG_CONFIG_HOME%\opencode") else (set "OPENCODE_DIR=%USERPROFILE%\.config\opencode")
+rem Only deploy if OpenCode is installed: on PATH, or in its installer's
+rem default location.
+where opencode >nul 2>&1
+if not errorlevel 1 goto :have_opencode
+if exist "%USERPROFILE%\.opencode\bin\opencode.exe" goto :have_opencode
+echo   SKIP opencode.jsonc ^(opencode not installed^)
+goto :end_opencode
+:have_opencode
 if not exist "%OPENCODE_DIR%" mkdir "%OPENCODE_DIR%"
 call :backup_and_copy "%SCRIPT_DIR%opencode\opencode.jsonc" "%OPENCODE_DIR%\opencode.jsonc"
+:end_opencode
 
 rem PowerShell profile: ask each installed PowerShell where its per-user,
 rem per-host profile lives (the path differs between Windows PowerShell 5.1

@@ -35,10 +35,19 @@ jobs:
       # for the source checks below (the rc files source ~/.aliases).
       - name: deploy.sh smoke test
         run: |
-          ./deploy.sh
+          # opencode isn't installed on the runner, so its config must be skipped.
+          ./deploy.sh | tee /tmp/deploy-out
+          grep -q "SKIP opencode.jsonc (opencode not installed)" /tmp/deploy-out
+          test ! -e "$HOME/.config/opencode/opencode.jsonc"
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.bashrc"
+          # A stub at the installer's default location (not on PATH) must
+          # enable the opencode config deploy.
+          mkdir -p "$HOME/.opencode/bin"
+          printf '#!/bin/sh\n' > "$HOME/.opencode/bin/opencode"
+          chmod +x "$HOME/.opencode/bin/opencode"
+          ./deploy.sh
           test -f "$HOME/.config/opencode/opencode.jsonc"
           jq -e '.statusLine.type == "command"' "$HOME/.claude/settings.json"
           # Second run must detect everything as already deployed.
@@ -90,7 +99,11 @@ jobs:
       # Exercises the Darwin case in deploy.sh (installs .zshrc).
       - name: deploy.sh smoke test
         run: |
-          ./deploy.sh
+          # A stub opencode on PATH must enable the opencode config deploy.
+          mkdir -p "$RUNNER_TEMP/bin"
+          printf '#!/bin/sh\n' > "$RUNNER_TEMP/bin/opencode"
+          chmod +x "$RUNNER_TEMP/bin/opencode"
+          PATH="$RUNNER_TEMP/bin:$PATH" ./deploy.sh
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.zshrc"

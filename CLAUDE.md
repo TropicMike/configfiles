@@ -16,7 +16,7 @@ This is a personal configuration files repository containing dotfiles, system co
   - Background check on every shell start for new upstream commits to this repo (`~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows), printing a pull + deploy reminder
 - `.emacs` - Emacs initialization: wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines`
 - `claude-prompt.json` - Claude Code `statusLine` setting (user@host:dir prompt matching the shell prompts, plus model, cost, and context usage; requires `jq`). `deploy.sh` deep-merges it into `~/.claude/settings.json` with jq, preserving other settings; skipped if jq is missing
-- `opencode/opencode.jsonc` - Global OpenCode config (V2 shape): `glm-53-flash-worker` primary agent plus a hidden, read-only `glm-advisor` subagent. Deployed to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`; `XDG_CONFIG_HOME` is ignored under sudo)
+- `opencode/opencode.jsonc` - Global OpenCode config (V2 shape): `glm-53-flash-worker` primary agent plus a hidden, read-only `glm-advisor` subagent. Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`; `XDG_CONFIG_HOME` is ignored under sudo)
 
 ### Linux/
 - `.bashrc` - Bash initialization: guards against non-interactive shells, sets PATH, sources `.aliases`, sets prompt (red for root, green for user)
