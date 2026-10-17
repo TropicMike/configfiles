@@ -4,15 +4,16 @@
 # contains 'i' only for interactive shells.
 case $- in *i*) ;; *) return;; esac
 
-# The user-specific dirs (Go toolchain, uv/local installs, ~/bin) are only
-# added for non-root users — root doesn't need them and shouldn't run things
-# out of a user's home. ~/.local/bin and ~/bin go to the front (matching the
-# macOS .zshrc) so uv-managed python/python3 win over the system ones; any
-# existing copy is stripped first so nested shells don't accumulate
-# duplicates. Listed in reverse so ~/.local/bin ends up first.
+# The user-specific dirs (Go toolchain, uv/local installs, ~/bin, opencode)
+# are only added for non-root users — root doesn't need them and shouldn't run
+# things out of a user's home. ~/.local/bin and ~/bin go to the front
+# (matching the macOS .zshrc) so uv-managed python/python3 win over the system
+# ones; any existing copy is stripped first so nested shells don't accumulate
+# duplicates. Listed in reverse so ~/.local/bin ends up first and
+# ~/.opencode/bin ends up ahead of it.
 if [ "$EUID" -ne 0 ]; then
   case ":$PATH:" in *":/usr/local/go/bin:"*) ;; *) PATH="$PATH:/usr/local/go/bin" ;; esac
-  for _d in "$HOME/bin" "$HOME/.local/bin"; do
+  for _d in "$HOME/bin" "$HOME/.local/bin" "$HOME/.opencode/bin"; do
     _p=":$PATH:"; _p=${_p//:$_d:/:}; _p=${_p#:}; _p=${_p%:}
     PATH="$_d${_p:+:$_p}"
   done
