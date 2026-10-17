@@ -4,15 +4,19 @@
 # contains 'i' only for interactive shells.
 case $- in *i*) ;; *) return;; esac
 
-# The user-specific dirs (Go toolchain, pip/local installs, ~/bin) are only
+# The user-specific dirs (Go toolchain, uv/local installs, ~/bin) are only
 # added for non-root users — root doesn't need them and shouldn't run things
-# out of a user's home. The case guard skips dirs already on PATH so nested
-# shells don't accumulate duplicates.
+# out of a user's home. ~/.local/bin and ~/bin go to the front (matching the
+# macOS .zshrc) so uv-managed python/python3 win over the system ones; any
+# existing copy is stripped first so nested shells don't accumulate
+# duplicates. Listed in reverse so ~/.local/bin ends up first.
 if [ "$EUID" -ne 0 ]; then
-  for _d in /usr/local/go/bin "$HOME/.local/bin" "$HOME/bin"; do
-    case ":$PATH:" in *":$_d:"*) ;; *) PATH="$PATH:$_d" ;; esac
+  case ":$PATH:" in *":/usr/local/go/bin:"*) ;; *) PATH="$PATH:/usr/local/go/bin" ;; esac
+  for _d in "$HOME/bin" "$HOME/.local/bin"; do
+    _p=":$PATH:"; _p=${_p//:$_d:/:}; _p=${_p#:}; _p=${_p%:}
+    PATH="$_d${_p:+:$_p}"
   done
-  unset _d
+  unset _d _p
 fi
 export PATH
 
