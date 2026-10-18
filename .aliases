@@ -53,6 +53,10 @@ function ipa() {
 # new upstream commits and print a reminder to pull + deploy. The
 # ( { ... } & ) form detaches the work so shell startup isn't delayed and no
 # job-control notice is printed. No-op on machines without the repo cloned.
+# The fetch is retried with backoff (3 attempts, 30s apart): on a Mac laptop
+# the network isn't ready when the first Terminal opens after sleep/wake, and
+# a silently failed fetch would mean the reminder never appears for that
+# session.
 # Note: this fetches from the remote on each shell, and the reminder reprints
 # every shell until you pull.
 _cfg_repo=~/Repos/configfiles
@@ -60,7 +64,13 @@ _cfg_repo=~/Repos/configfiles
 [ -d "$_cfg_repo/.git" ] || _cfg_repo=/c/Repos/configfiles
 if [ -d "$_cfg_repo/.git" ]; then
   ( {
-      if git -C "$_cfg_repo" fetch -q 2>/dev/null; then
+      _tries=3
+      while [ "$_tries" -gt 0 ]; do
+        git -C "$_cfg_repo" fetch -q 2>/dev/null && break
+        _tries=$(( _tries - 1 ))
+        [ "$_tries" -gt 0 ] && sleep 30
+      done
+      if [ "$_tries" -gt 0 ]; then
         # Resolve the remote's default branch (origin/HEAD, set at clone time)
         # rather than hardcoding master, so a rename to main keeps working.
         _def="$(git -C "$_cfg_repo" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)"
