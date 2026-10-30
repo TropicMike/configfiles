@@ -1,1 +1,5 @@
+# Emacs backup and autosave files (the ones rmbak deletes)
 *~
+\#*#
+# macOS Finder metadata
+.DS_Store

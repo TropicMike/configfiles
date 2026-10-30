@@ -4,6 +4,20 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+# A newer push to the same ref supersedes an in-progress run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# An explicit `shell: bash` runs steps with -o pipefail (the implicit default
+# shell doesn't), so a failing ./deploy.sh can't hide behind `| tee`.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   shell:
     name: Shell scripts
@@ -16,13 +30,13 @@ jobs:
 
       # SC1090/SC1091 (can't follow sourced files) are excluded because every
       # sourced file is checked directly here anyway. -s bash is needed for
-      # the files without a shebang (.aliases, .bashrc, macos-fix-home-end.sh).
+      # the files without a shebang (.aliases, .bashrc).
       - name: shellcheck
-        run: shellcheck -s bash -S warning -e SC1090,SC1091 deploy.sh .aliases Linux/.bashrc MacOS/macos-fix-home-end.sh
+        run: shellcheck -s bash -S warning -e SC1090,SC1091 deploy.sh claude-statusline.sh .aliases Linux/.bashrc MacOS/macos-fix-home-end.sh
 
       - name: bash syntax check
         run: |
-          for f in deploy.sh .aliases Linux/.bashrc MacOS/macos-fix-home-end.sh; do
+          for f in deploy.sh claude-statusline.sh .aliases Linux/.bashrc MacOS/macos-fix-home-end.sh; do
             bash -n "$f"
           done
 
@@ -30,6 +44,38 @@ jobs:
         run: |
           zsh -n .aliases
           zsh -n MacOS/.zshrc
+
+      # opencode.jsonc may gain // comments (JSONC), which jq rejects, so
+      # whole-line comments are stripped before validating.
+      - name: JSON config validity
+        run: |
+          jq empty claude-prompt.json
+          sed 's#^[[:space:]]*//.*##' opencode/opencode.jsonc | jq empty
+
+      # .gitattributes keeps *.reg bytes untouched (-text) because regedit
+      # wants UTF-16 LE with a BOM; check the bytes really are that.
+      - name: .reg files are UTF-16 LE with BOM
+        run: |
+          while IFS= read -r -d '' f; do
+            if [ "$(head -c 2 "$f" | od -An -tx1 | tr -d ' ')" != "fffe" ]; then
+              echo "missing UTF-16 LE BOM: $f"; exit 1
+            fi
+          done < <(find . -name '*.reg' -print0)
+
+      # Renders the status line from fixture JSON and compares the text with
+      # the ANSI colors stripped.
+      - name: Claude status line
+        run: |
+          render() { ./claude-statusline.sh | sed 's/\x1b\[[0-9;]*m//g'; }
+          me="$(id -un)@$(hostname -s)"
+          out="$(echo '{"workspace":{"current_dir":"/srv/my proj"},"model":{"display_name":"Opus"},"cost":{"total_cost_usd":0.4251},"context_window":{"used_percentage":12.6}}' | render)"
+          test "$out" = "$me:my proj | Opus | \$0.43 | Ctx:13%"
+          # Home shows as ~, and a zero cost is hidden.
+          out="$(echo "{\"workspace\":{\"current_dir\":\"$HOME\"},\"model\":{\"display_name\":\"Opus\"},\"cost\":{\"total_cost_usd\":0}}" | render)"
+          test "$out" = "$me:~ | Opus"
+          # A missing middle field doesn't shift the ones after it.
+          out="$(echo '{"workspace":{"current_dir":"/"},"context_window":{"used_percentage":50}}' | render)"
+          test "$out" = "$me:/ | Ctx:50%"
 
       # Runs first among the behavior tests so ~/.aliases and ~/.bashrc exist
       # for the source checks below (the rc files source ~/.aliases).
@@ -50,6 +96,7 @@ jobs:
           ./deploy.sh
           test -f "$HOME/.config/opencode/opencode.jsonc"
           jq -e '.statusLine.type == "command"' "$HOME/.claude/settings.json"
+          test -f "$HOME/.claude/statusline.sh"
           # Second run must detect everything as already deployed.
           out="$(./deploy.sh)"
           echo "$out" | grep -q "UNCHANGED"
@@ -80,10 +127,46 @@ jobs:
           cmp "$work/before.json" "$HOME/.claude/settings.json"
           test ! -e "$HOME/.claude/settings.json.bak"
 
+      # --dry-run must report the plan without writing anything.
+      - name: deploy.sh --dry-run writes nothing
+        run: |
+          export HOME="$(mktemp -d)"
+          ./deploy.sh --dry-run | tee "$RUNNER_TEMP/dry"
+          grep -q "WOULD INSTALL $HOME/.aliases" "$RUNNER_TEMP/dry"
+          test -z "$(ls -A "$HOME")"
+
+      # A symlinked destination must have its target updated and the link
+      # itself preserved.
+      - name: deploy.sh follows symlinked destinations
+        run: |
+          export HOME="$(mktemp -d)"
+          echo old > "$HOME/real-aliases"
+          ln -s real-aliases "$HOME/.aliases"
+          ./deploy.sh
+          test -L "$HOME/.aliases"
+          cmp .aliases "$HOME/real-aliases"
+
+      # An unwritable destination must be reported with ERROR and a non-zero
+      # exit when executed, while sourcing (bash and zsh) must still never
+      # exit the caller's shell.
+      - name: deploy.sh reports unwritable destinations
+        run: |
+          export HOME="$(mktemp -d)"
+          echo old > "$HOME/.emacs"
+          chmod 444 "$HOME/.emacs"
+          if ./deploy.sh > "$RUNNER_TEMP/out"; then exit 1; fi
+          grep -q "ERROR $HOME/.emacs is not writable" "$RUNNER_TEMP/out"
+          grep -q "Done, with errors" "$RUNNER_TEMP/out"
+          bash -c 'source ./deploy.sh >/dev/null; echo alive' | grep -q alive
+          zsh -c 'source ./deploy.sh >/dev/null; echo alive' | grep -q alive
+
       - name: source .aliases in bash and zsh
         run: |
-          bash -c 'source ./.aliases && type ipa >/dev/null && type rmbak >/dev/null'
-          zsh -c 'source ./.aliases && type ipa >/dev/null && type rmbak >/dev/null'
+          bash -c 'source ./.aliases && type ipa >/dev/null && type rmbak >/dev/null && type lsd | grep -q function'
+          zsh -c 'source ./.aliases && type ipa >/dev/null && type rmbak >/dev/null && type lsd | grep -q function'
+          # Re-sourcing over the old lsd alias must not be a syntax error.
+          bash -c 'shopt -s expand_aliases; alias lsd=ls; source ./.aliases && type lsd | grep -q function'
+          zsh -c 'alias lsd=ls; source ./.aliases && type lsd | grep -q function'
 
       - name: source rc files
         run: |

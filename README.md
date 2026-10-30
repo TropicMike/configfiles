@@ -10,6 +10,10 @@ Run `./deploy.sh` to deploy the shared and OS-specific config files to your home
 
 To install the files for the **root** user, run the script with `sudo` (e.g. `sudo ./deploy.sh`) — it then deploys to root's home directory instead of yours.
 
+`./deploy.sh --dry-run` (`-n`) prints what would be installed, backed up, or merged without writing anything; `--help` lists the options.
+
+On Windows, run `deploy.bat` (and `Windows\setup.bat` first on a new machine).
+
 ## Files
 
 ### Shared (root directory)
@@ -18,7 +22,8 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 |------|-------------|
 | `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks in the background on every shell start for new upstream commits to this repo, retrying the remote fetch with backoff so it still works when the shell starts before the network is up (e.g. first Terminal after sleep/wake on macOS), and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows) |
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
-| `claude-prompt.json` | Claude Code `statusLine` snippet — colored user@host:dir prompt (red for root, green otherwise) plus model, session cost, and context-window usage. `deploy.sh` merges it into `~/.claude/settings.json` (requires `jq`; other settings are kept) |
+| `claude-prompt.json` | Claude Code `statusLine` snippet pointing at `~/.claude/statusline.sh`. `deploy.sh` merges it into `~/.claude/settings.json` (requires `jq`; other settings are kept) |
+| `claude-statusline.sh` | The status line itself — colored user@host:dir prompt matching the shell prompts (red for root, green otherwise; `~` at home) plus model, session cost (once non-zero), and context-window usage; requires `jq`. `deploy.sh` installs it as `~/.claude/statusline.sh`. Not deployed by `deploy.bat` |
 | `opencode/opencode.jsonc` | Global OpenCode config — see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
 
 #### Aliases / Functions (`.aliases`)
@@ -30,7 +35,7 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 | `z` | `clear` |
 | `md` | `mkdir` |
 | `ls` | `ls --color` (Linux) / `ls -G` (macOS) |
-| `lsd` | Long listing with color, sorted by time, paged |
+| `lsd` | Long listing with color, sorted by time, paged; takes an optional path |
 | `rmbak` | Delete Emacs backup (`*~`) and autosave (`#*#`) files in current directory |
 | `hex` | `hexdump -C` |
 | `rsync` | `rsync -aSP` (archive, sparse, progress + partial) |
@@ -52,20 +57,20 @@ A fast primary worker plus a strategic advisor subagent, in OpenCode's native V2
 
 | File | Description |
 |------|-------------|
-| `.bashrc` | Bash initialization — sets PATH, sources `.aliases`, sets prompt |
+| `.bashrc` | Bash initialization — sets PATH, large shared history (`histappend`, `ignoreboth`), sources `.aliases`, sets prompt |
 
 ### MacOS/
 
 | File | Description |
 |------|-------------|
-| `.zshrc` | Zsh initialization — sets PATH, sources `.aliases`, sets prompt (red for root, green for user) |
+| `.zshrc` | Zsh initialization — sets PATH (user dirs for non-root only), large history shared between terminals, sources `.aliases`, sets prompt (red for root, green for user) |
 | `macos-fix-home-end.sh` | Remaps Home/End keys to beginning/end of line via DefaultKeyBinding.dict |
 
 ### Windows/
 
 | File | Description |
 |------|-------------|
-| `setup.bat` | Bootstrap a new Windows machine — installs the baseline tools (Git, GitHub CLI, less) via winget; idempotent |
+| `setup.bat` | Bootstrap a new Windows machine — installs the baseline tools (Git, GitHub CLI, less) via winget (1.7+); idempotent |
 | `Microsoft.PowerShell_profile.ps1` | PowerShell profile — equivalents of the shared aliases (`e`, `m`, `z`, `hex`, `lsd`, `rmbak`, `ipa`), colored user@host:dir prompt (red for admin, green otherwise), and the upstream-commit check |
 | `aliases.bat` | DOS aliases: `ls`, `cp`, `xcp`, `mv`, `clear`, `h`, `alias` |
 | `netlogon.bat` | Network logon script |
@@ -84,8 +89,8 @@ Registry files to enable or disable the Windows context menu:
 
 | File | Description |
 |------|-------------|
-| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — merges `claude-prompt.json` into `~/.claude/settings.json`, installs the OpenCode config — backs up existing files, skips unchanged. When run as root/sudo, deploys to root's home directory |
-| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the OpenCode config, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged |
+| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — installs the Claude status line script and merges `claude-prompt.json` into `~/.claude/settings.json`, installs the OpenCode config — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. `--dry-run` previews. When run as root/sudo, deploys to root's home directory |
+| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the OpenCode config, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. Does not set up the Claude status line |
 
 ## Notes
 
@@ -93,4 +98,4 @@ Registry files to enable or disable the Windows context menu:
   - Shell scripts and dotfiles use Unix line endings (LF)
   - Batch files and PowerShell scripts use DOS line endings (CRLF)
   - Registry files use UTF-16 encoding with BOM
-- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, `deploy.sh` smoke tests on Linux and macOS (covering the Darwin-only branches), and PSScriptAnalyzer on every push
+- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, JSON and `.reg` encoding checks, a status line render test, `deploy.sh` behavior tests (smoke tests on Linux and macOS covering the Darwin-only branches, dry run, symlinked and unwritable destinations, invalid snippet, sourcing from bash and zsh), and PSScriptAnalyzer on every push

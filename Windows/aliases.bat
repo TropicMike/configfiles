@@ -9,6 +9,8 @@ DOSKEY mv=MOVE $*
 DOSKEY clear=CLS
 DOSKEY h=DOSKEY /HISTORY
 rem 'alias' with no args lists all macros; with args it defines a new one.
+rem Limitation: the definition is pasted into an `if` comparison, so one
+rem containing &, |, ( or ) breaks it; define such macros with DOSKEY directly.
 DOSKEY alias=if ".$*." == ".." ( DOSKEY /MACROS ) else ( DOSKEY $* )
 rem Claude Code mouse click handling: 0 (set here) keeps it enabled; set to 1
 rem to disable it so terminal-native click behavior (text selection, etc.)

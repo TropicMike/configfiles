@@ -1,6 +1,8 @@
 @echo off
 setlocal
 set SCRIPT_DIR=%~dp0
+rem Set to 1 by :backup_and_copy on any failure; makes the script exit 1.
+set FAILED=0
 
 echo Deploying config files to %USERPROFILE%
 echo.
@@ -41,6 +43,10 @@ call :backup_and_copy "%SCRIPT_DIR%Linux\.bashrc" "%USERPROFILE%\.bashrc"
 :end_gitbash
 
 echo.
+if "%FAILED%"=="1" (
+    echo Done, with errors ^(see the ERROR lines above^).
+    exit /b 1
+)
 echo Done.
 goto :eof
 
@@ -56,15 +62,41 @@ if not exist "%src%" (
     echo   SKIP %~nx1 ^(not found^)
     goto :eof
 )
-if exist "%dest%" (
-    fc /b "%src%" "%dest%" >nul 2>&1
-    if not errorlevel 1 (
-        echo   UNCHANGED %~nx2
-        goto :eof
-    )
-    copy /y "%dest%" "%dest%.bak" >nul
-    echo   BACKUP %dest% -^> %dest%.bak
+rem The steps below use goto rather than ( ) blocks so that a path containing
+rem a parenthesis (e.g. "Program Files (x86)") can't break the echo lines.
+if not exist "%dest%" goto :install
+fc /b "%src%" "%dest%" >nul 2>&1
+if not errorlevel 1 (
+    echo   UNCHANGED %~nx2
+    goto :eof
 )
-copy /y "%src%" "%dest%" >nul
+copy /y "%dest%" "%dest%.bak" >nul
+if errorlevel 1 goto :backup_failed
+echo   BACKUP %dest% -^> %dest%.bak
+:install
+rem Copy to a temp file next to the destination and move it into place, so a
+rem failed copy (locked file, permissions, OneDrive) can never leave a
+rem truncated file at the destination.
+copy /y "%src%" "%dest%.tmp" >nul
+if errorlevel 1 goto :copy_failed
+move /y "%dest%.tmp" "%dest%" >nul
+if errorlevel 1 goto :install_failed
 echo   INSTALLED %dest%
+goto :eof
+
+:backup_failed
+echo   ERROR backing up %dest% (leaving it untouched)
+set FAILED=1
+goto :eof
+
+:copy_failed
+if exist "%dest%.tmp" del "%dest%.tmp"
+echo   ERROR copying %src% -^> %dest%
+set FAILED=1
+goto :eof
+
+:install_failed
+if exist "%dest%.tmp" del "%dest%.tmp"
+echo   ERROR installing %dest%
+set FAILED=1
 goto :eof

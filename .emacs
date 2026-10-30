@@ -26,26 +26,22 @@
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message nil)
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(tool-bar-mode nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:slant normal :weight normal :height 140 :width normal)))))
+;; Keep Customize's state out of this tracked file: anything saved through
+;; M-x customize goes to custom.el in the Emacs directory instead.
+(setq custom-file (locate-user-emacs-file "custom.el"))
+(load custom-file 'noerror)
 
-;; Use the first available monospace font, in preference order:
+(when (fboundp 'tool-bar-mode) (tool-bar-mode -1)) ; no toolbar
+
+;; Use the first available monospace font at 14pt, in preference order:
 ;; Consolas (Windows), Menlo (macOS), DejaVu Sans Mono (Linux), Courier New.
+;; If none is found, keep the default font but still at 14pt.
 (cond
  ((find-font (font-spec :name "Consolas")) (set-frame-font "Consolas-14" nil t))
  ((find-font (font-spec :name "Menlo")) (set-frame-font "Menlo-14" nil t))
  ((find-font (font-spec :name "DejaVu Sans Mono")) (set-frame-font "DejaVu Sans Mono-14" nil t))
- ((find-font (font-spec :name "Courier New")) (set-frame-font "Courier New-14" nil t)))
+ ((find-font (font-spec :name "Courier New")) (set-frame-font "Courier New-14" nil t))
+ (t (set-face-attribute 'default nil :height 140)))
 
 ;; Remove duplicate lines in region (keeps first occurrence).
 (defalias 'uniq-lines 'delete-duplicate-lines)

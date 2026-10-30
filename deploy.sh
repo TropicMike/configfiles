@@ -13,6 +13,8 @@ SCRIPT_DIR="$(cd "$(dirname "$_self")" && pwd)"
 unset _self
 CHANGED_SHELL_FILES=()
 FAILED=0
+# Temp file currently being written, removed by the interrupt trap below.
+_TMP=""
 
 # Detect if this script is being sourced (bash compares BASH_SOURCE to $0;
 # zsh reports ":file" in ZSH_EVAL_CONTEXT while sourcing). Done up front
@@ -24,6 +26,45 @@ if [ -n "${ZSH_VERSION:-}" ]; then
   case "${ZSH_EVAL_CONTEXT:-}" in *:file*) SOURCED=1 ;; esac
 elif [ "${BASH_SOURCE[0]:-}" != "${0}" ]; then
   SOURCED=1
+fi
+
+DRY_RUN=0
+for _arg in "$@"; do
+  case "$_arg" in
+    -n|--dry-run) DRY_RUN=1 ;;
+    -h|--help)
+      cat <<'EOF'
+Usage: deploy.sh [-n|--dry-run] [-h|--help]
+
+Installs the shared and OS-specific config files from this repo into your
+home directory (root's when run as root/sudo), backing up any file it
+replaces to <file>.bak and skipping files that are already up to date.
+Merges claude-prompt.json into ~/.claude/settings.json (requires jq) and
+installs the OpenCode config if opencode is installed.
+
+  -n, --dry-run  print what would be installed, backed up, or merged,
+                 without writing anything
+  -h, --help     show this help
+
+May also be sourced (source ./deploy.sh) from bash or zsh, in which case
+changed shell files are re-sourced into the current shell.
+EOF
+      # A top-level return ends a sourced script without killing the caller.
+      if [ "$SOURCED" -eq 1 ]; then return 0; else exit 0; fi
+      ;;
+    *)
+      echo "deploy.sh: unknown option '$_arg' (see --help)" >&2
+      if [ "$SOURCED" -eq 1 ]; then return 2; else exit 2; fi
+      ;;
+  esac
+done
+unset _arg
+
+# On Ctrl-C (or kill), remove the half-written temp file instead of leaving it
+# next to the destination. Only when executed: a trap set while sourced would
+# stay installed in the caller's interactive shell.
+if [ "$SOURCED" -eq 0 ]; then
+  trap '[ -n "$_TMP" ] && rm -f "$_TMP"; exit 130' INT TERM HUP
 fi
 
 if [ "$(id -u)" -eq 0 ]; then
@@ -64,6 +105,11 @@ backup_and_copy() {
     FAILED=1
     return 1
   fi
+  if [ "$DRY_RUN" -eq 1 ]; then
+    [ -f "$dest" ] && echo "  WOULD BACK UP $dest -> $dest.bak"
+    echo "  WOULD INSTALL $dest"
+    return
+  fi
   if ! mkdir -p "$(dirname "$dest")"; then
     echo "  ERROR creating $(dirname "$dest")"
     FAILED=1
@@ -79,6 +125,7 @@ backup_and_copy() {
     FAILED=1
     return 1
   }
+  _TMP="$tmp"
   rm -f "$tmp"
   if [ -f "$dest" ]; then
     if ! cp "$dest" "$dest.bak"; then
@@ -104,6 +151,7 @@ backup_and_copy() {
     FAILED=1
     return 1
   fi
+  _TMP=""
   echo "  INSTALLED $dest"
   CHANGED_SHELL_FILES+=("$orig_dest")
 }
@@ -111,7 +159,7 @@ backup_and_copy() {
 # Deep-merge a JSON snippet into an existing JSON file (snippet keys win),
 # leaving the destination's other settings intact. Requires jq.
 merge_json() {
-  local src="$1" dest="$2" tmp
+  local src="$1" dest="$2" tmp merged
   if [ ! -f "$src" ]; then
     echo "  SKIP $(basename "$src") (not found)"
     return
@@ -132,6 +180,19 @@ merge_json() {
     return
   fi
   dest="$(resolve_symlinks "$dest")"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    if [ ! -f "$dest" ]; then
+      echo "  WOULD CREATE $dest from $src"
+    elif ! merged="$(jq -s '.[0] * .[1]' "$dest" "$src" 2>/dev/null)"; then
+      echo "  SKIP $dest (existing file is not valid JSON)"
+    elif printf '%s\n' "$merged" | diff -q - "$dest" >/dev/null 2>&1; then
+      echo "  UNCHANGED $(basename "$dest")"
+    else
+      echo "  WOULD BACK UP $dest -> $dest.bak"
+      echo "  WOULD MERGE $src -> $dest"
+    fi
+    return
+  fi
   if ! mkdir -p "$(dirname "$dest")"; then
     echo "  ERROR creating $(dirname "$dest")"
     FAILED=1
@@ -142,6 +203,7 @@ merge_json() {
     FAILED=1
     return 1
   }
+  _TMP="$tmp"
   if [ -f "$dest" ]; then
     if ! jq -s '.[0] * .[1]' "$dest" "$src" >"$tmp" 2>/dev/null; then
       rm -f "$tmp"
@@ -176,10 +238,15 @@ merge_json() {
     FAILED=1
     return 1
   fi
+  _TMP=""
   echo "  MERGED $src -> $dest"
 }
 
-echo "Deploying config files to $DEPLOY_HOME"
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo "Dry run: showing what would be deployed to $DEPLOY_HOME (nothing is written)"
+else
+  echo "Deploying config files to $DEPLOY_HOME"
+fi
 echo "OS: $(uname)"
 if [ "$(id -u)" -ne 0 ]; then
   echo "Note: to install the files for the root user, re-run with sudo (sudo ./deploy.sh)"
@@ -188,6 +255,8 @@ echo ""
 
 backup_and_copy "$SCRIPT_DIR/.aliases" "$DEPLOY_HOME/.aliases"
 backup_and_copy "$SCRIPT_DIR/.emacs" "$DEPLOY_HOME/.emacs"
+# The status line script that claude-prompt.json's statusLine command runs.
+backup_and_copy "$SCRIPT_DIR/claude-statusline.sh" "$DEPLOY_HOME/.claude/statusline.sh"
 merge_json "$SCRIPT_DIR/claude-prompt.json" "$DEPLOY_HOME/.claude/settings.json"
 
 # OpenCode reads its global config from $XDG_CONFIG_HOME/opencode (default
@@ -225,11 +294,12 @@ esac
 
 echo ""
 
-# Determine sourceable files (exclude non-shell configs like .emacs)
+# Determine sourceable files (exclude non-shell configs like .emacs, and
+# scripts like the Claude status line that are run, not sourced)
 SOURCEABLE=()
 for f in "${CHANGED_SHELL_FILES[@]}"; do
   case "$f" in
-    *.emacs|*.jsonc) ;;
+    *.emacs|*.jsonc|*.sh) ;;
     *) SOURCEABLE+=("$f") ;;
   esac
 done
@@ -257,6 +327,8 @@ if [ "$FAILED" -eq 1 ]; then
   if [ "$SOURCED" -eq 0 ]; then
     exit 1
   fi
+elif [ "$DRY_RUN" -eq 1 ]; then
+  echo "Dry run complete; nothing was changed."
 else
   echo "Done."
 fi

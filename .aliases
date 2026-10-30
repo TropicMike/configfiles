@@ -14,13 +14,18 @@ fi
 alias z=clear
 alias md=mkdir
 
+# lsd is a function rather than an alias so a path argument (`lsd /tmp`)
+# reaches ls instead of less. Drop any lsd alias left over from an older
+# version of this file first, or re-sourcing would alias-expand the function
+# definition into a syntax error.
+unalias lsd 2>/dev/null
 if [[ "$(uname)" == "Darwin" ]]; then
   alias ls='ls -G'
   # CLICOLOR_FORCE keeps ls colors when piping into less (BSD ls drops them otherwise)
-  alias lsd='CLICOLOR_FORCE=1 ls -G -lath|less -R'
+  function lsd() { CLICOLOR_FORCE=1 command ls -G -lath "$@" | less -R; }
 else
   alias ls='ls --color'
-  alias lsd='ls --color=always -lath|less -R'
+  function lsd() { command ls --color=always -lath "$@" | less -R; }
 fi
 
 function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*#' -delete; }

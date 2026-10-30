@@ -6,11 +6,12 @@ case $- in *i*) ;; *) return;; esac
 
 # The user-specific dirs (Go toolchain, uv/local installs, ~/bin, opencode)
 # are only added for non-root users — root doesn't need them and shouldn't run
-# things out of a user's home. ~/.local/bin and ~/bin go to the front
-# (matching the macOS .zshrc) so uv-managed python/python3 win over the system
-# ones; any existing copy is stripped first so nested shells don't accumulate
-# duplicates. Listed in reverse so ~/.local/bin ends up first and
-# ~/.opencode/bin ends up ahead of it.
+# things out of a user's home. ~/.local/bin and ~/bin go to the front so
+# uv-managed python/python3 win over the system ones; any existing copy is
+# stripped first so nested shells don't accumulate duplicates. Each dir in the
+# loop is prepended, so the resulting order is the reverse of the list:
+# ~/.opencode/bin, ~/.local/bin, ~/bin (matching the macOS .zshrc). Note that
+# this lets anything opencode ships in ~/.opencode/bin outrank uv's tools.
 if [ "$EUID" -ne 0 ]; then
   case ":$PATH:" in *":/usr/local/go/bin:"*) ;; *) PATH="$PATH:/usr/local/go/bin" ;; esac
   for _d in "$HOME/bin" "$HOME/.local/bin" "$HOME/.opencode/bin"; do
@@ -20,6 +21,15 @@ if [ "$EUID" -ne 0 ]; then
   unset _d _p
 fi
 export PATH
+
+# History: append to the history file instead of overwriting it, so
+# concurrent terminals don't clobber each other's history; skip commands typed
+# with a leading space and consecutive duplicates (ignoreboth); keep far more
+# than bash's default of 500 entries.
+shopt -s histappend
+HISTCONTROL=ignoreboth
+HISTSIZE=100000
+HISTFILESIZE=100000
 
 [ -f ~/.aliases ] && source ~/.aliases
 

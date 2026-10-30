@@ -37,8 +37,9 @@ if (Get-Command less -ErrorAction SilentlyContinue) {
 }
 
 # Long listing including hidden files, newest first, paged (like `ls -lath | less`).
-# Pipes through `m` so it uses the best pager found above.
-function lsd { Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | m }
+# Pipes through `m` so it uses the best pager found above. Arguments (e.g. a
+# path) are passed on to Get-ChildItem.
+function lsd { Get-ChildItem -Force @args | Sort-Object LastWriteTime -Descending | m }
 
 # Delete Emacs backup (*~) and autosave (#*#) files in the current directory.
 function rmbak { Remove-Item -Path '*~', '#*#' -ErrorAction SilentlyContinue }
@@ -71,7 +72,9 @@ function prompt {
 # pull + deploy reminder (mirrors the check in .aliases). To avoid delaying
 # shell startup with a network round-trip, compare against the refs from the
 # LAST fetch (instant), then kick off a detached background fetch so the next
-# shell sees fresh refs. No-op on machines without the repo cloned.
+# shell sees fresh refs. Like .aliases, the fetch is retried with backoff (3
+# attempts, 30s apart) because the network may not be up yet right after
+# sleep/wake. No-op on machines without the repo cloned.
 $cfgRepo = Join-Path $HOME 'Repos\configfiles'
 if (-not (Test-Path (Join-Path $cfgRepo '.git'))) { $cfgRepo = 'C:\Repos\configfiles' }
 if ((Test-Path (Join-Path $cfgRepo '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -81,8 +84,16 @@ if ((Test-Path (Join-Path $cfgRepo '.git')) -and (Get-Command git -ErrorAction S
     if (-not $def) { $def = 'origin/master' }
     $n = git -C $cfgRepo rev-list --count "HEAD..$def" 2>$null
     if ([int]$n -gt 0) {
-        Write-Host "configfiles: $n new commit(s) upstream - run: git -C $cfgRepo pull; & $cfgRepo\deploy.bat" -ForegroundColor Yellow
+        Write-Host "configfiles: $n new commit(s) upstream - run: git -C `"$cfgRepo`" pull; & `"$cfgRepo\deploy.bat`"" -ForegroundColor Yellow
     }
-    Start-Process -FilePath git -ArgumentList '-C', $cfgRepo, 'fetch', '-q' -WindowStyle Hidden
+    # The retry loop runs in a hidden child PowerShell of the same edition.
+    # It's passed via -EncodedCommand (base64, no spaces) because
+    # Start-Process joins -ArgumentList with spaces without quoting, which
+    # would split a repo path like C:\Users\First Last\Repos\configfiles.
+    $repoLiteral = "'" + ($cfgRepo -replace "'", "''") + "'"
+    $fetch = "for (`$i = 3; `$i -gt 0; `$i--) { git -C $repoLiteral fetch -q 2>`$null; if (`$LASTEXITCODE -eq 0) { break }; if (`$i -gt 1) { Start-Sleep -Seconds 30 } }"
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($fetch))
+    if ($PSVersionTable.PSEdition -eq 'Core') { $psExe = Join-Path $PSHOME 'pwsh.exe' } else { $psExe = Join-Path $PSHOME 'powershell.exe' }
+    Start-Process -FilePath $psExe -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded -WindowStyle Hidden
 }
-Remove-Variable -Name cfgRepo, def, n -ErrorAction SilentlyContinue
+Remove-Variable -Name cfgRepo, def, n, repoLiteral, fetch, encoded, psExe -ErrorAction SilentlyContinue
