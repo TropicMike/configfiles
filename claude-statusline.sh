@@ -5,6 +5,11 @@
 # Claude Code pipes the session JSON on stdin. deploy.sh installs this as
 # ~/.claude/statusline.sh, which claude-prompt.json points the statusLine at.
 
+# Nothing to render without jq, and nothing worth rendering if the session
+# payload is unusable: exit quietly instead of printing a prompt with no
+# directory (and jq's parse errors on stderr).
+command -v jq >/dev/null 2>&1 || exit 0
+
 # One jq call extracts every field, joined by the ASCII unit separator (\x1f):
 # unlike a tab, a non-whitespace IFS character keeps empty fields in place.
 # Cost is blanked unless positive, so a fresh session doesn't show $0.00.
@@ -13,7 +18,8 @@ IFS=$'\x1f' read -r cwd model cost ctx < <(jq -r '[
     (.model.display_name // ""),
     (.cost.total_cost_usd // 0 | if . > 0 then tostring else "" end),
     (.context_window.used_percentage // "" | tostring)
-  ] | join("\u001f")')
+  ] | join("\u001f")' 2>/dev/null)
+[ -n "$cwd" ] || exit 0
 
 # Show ~ for the home directory, like \W / %1~ in the shell prompts.
 if [ "$cwd" = "$HOME" ]; then

@@ -39,7 +39,8 @@ Usage: deploy.sh [-n|--dry-run] [-h|--help]
 Installs the shared and OS-specific config files from this repo into your
 home directory (root's when run as root/sudo), backing up any file it
 replaces to <file>.bak and skipping files that are already up to date.
-Merges claude-prompt.json into ~/.claude/settings.json (requires jq) and
+Installs the Claude Code status line and merges claude-prompt.json into
+~/.claude/settings.json (requires jq) when Claude Code is installed, and
 installs the OpenCode config if opencode is installed.
 
   -n, --dry-run  print what would be installed, backed up, or merged,
@@ -53,8 +54,15 @@ EOF
       if [ "$SOURCED" -eq 1 ]; then return 0; else exit 0; fi
       ;;
     *)
-      echo "deploy.sh: unknown option '$_arg' (see --help)" >&2
-      if [ "$SOURCED" -eq 1 ]; then return 2; else exit 2; fi
+      # Sourced, "$@" holds the *caller's* positional parameters, so an
+      # unrecognised word is probably not ours: warn and carry on rather than
+      # aborting the caller's shell (or worse, returning 2 from their script).
+      if [ "$SOURCED" -eq 1 ]; then
+        echo "deploy.sh: ignoring unknown argument '$_arg' (sourced)" >&2
+      else
+        echo "deploy.sh: unknown option '$_arg' (see --help)" >&2
+        exit 2
+      fi
       ;;
   esac
 done
@@ -255,9 +263,16 @@ echo ""
 
 backup_and_copy "$SCRIPT_DIR/.aliases" "$DEPLOY_HOME/.aliases"
 backup_and_copy "$SCRIPT_DIR/.emacs" "$DEPLOY_HOME/.emacs"
-# The status line script that claude-prompt.json's statusLine command runs.
-backup_and_copy "$SCRIPT_DIR/claude-statusline.sh" "$DEPLOY_HOME/.claude/statusline.sh"
-merge_json "$SCRIPT_DIR/claude-prompt.json" "$DEPLOY_HOME/.claude/settings.json"
+# Claude Code's status line: deploy the script and merge the snippet only when
+# Claude Code is present — either its binary is on PATH, or ~/.claude already
+# exists (which also keeps updating an install whose binary isn't on PATH yet).
+if command -v claude >/dev/null 2>&1 || [ -d "$DEPLOY_HOME/.claude" ]; then
+  # The status line script that claude-prompt.json's statusLine command runs.
+  backup_and_copy "$SCRIPT_DIR/claude-statusline.sh" "$DEPLOY_HOME/.claude/statusline.sh"
+  merge_json "$SCRIPT_DIR/claude-prompt.json" "$DEPLOY_HOME/.claude/settings.json"
+else
+  echo "  SKIP claude-prompt.json (claude not installed)"
+fi
 
 # OpenCode reads its global config from $XDG_CONFIG_HOME/opencode (default
 # ~/.config/opencode). Ignore XDG_CONFIG_HOME under sudo, where it would point

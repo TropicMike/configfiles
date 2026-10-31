@@ -22,8 +22,8 @@ On Windows, run `deploy.bat` (and `Windows\setup.bat` first on a new machine).
 |------|-------------|
 | `.aliases` | Shared aliases and shell functions (sourced by both bash and zsh); also checks in the background on every shell start for new upstream commits to this repo, retrying the remote fetch with backoff so it still works when the shell starts before the network is up (e.g. first Terminal after sleep/wake on macOS), and prints a pull + deploy reminder (expects the clone at `~/Repos/configfiles`, falling back to `/c/Repos/configfiles` for Git Bash on Windows) |
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
-| `claude-prompt.json` | Claude Code `statusLine` snippet pointing at `~/.claude/statusline.sh`. `deploy.sh` merges it into `~/.claude/settings.json` (requires `jq`; other settings are kept) |
-| `claude-statusline.sh` | The status line itself — colored user@host:dir prompt matching the shell prompts (red for root, green otherwise; `~` at home) plus model, session cost (once non-zero), and context-window usage; requires `jq`. `deploy.sh` installs it as `~/.claude/statusline.sh`. Not deployed by `deploy.bat` |
+| `claude-prompt.json` | Claude Code `statusLine` snippet pointing at `~/.claude/statusline.sh`. `deploy.sh` merges it into `~/.claude/settings.json` (requires `jq`; other settings are kept) — only when Claude Code is installed |
+| `claude-statusline.sh` | The status line itself — colored user@host:dir prompt matching the shell prompts (red for root, green otherwise; `~` at home) plus model, session cost (once non-zero), and context-window usage; requires `jq`, and renders nothing without it. `deploy.sh` installs it as `~/.claude/statusline.sh`. Not deployed by `deploy.bat` |
 | `opencode/opencode.jsonc` | Global OpenCode config — see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
 
 #### Aliases / Functions (`.aliases`)
@@ -89,7 +89,7 @@ Registry files to enable or disable the Windows context menu:
 
 | File | Description |
 |------|-------------|
-| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — installs the Claude status line script and merges `claude-prompt.json` into `~/.claude/settings.json`, installs the OpenCode config — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. `--dry-run` previews. When run as root/sudo, deploys to root's home directory |
+| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — installs the Claude status line script and merges `claude-prompt.json` into `~/.claude/settings.json` (both only when Claude Code is installed), installs the OpenCode config — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. `--dry-run` previews. When run as root/sudo, deploys to root's home directory |
 | `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the OpenCode config, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. Does not set up the Claude status line |
 
 ## Notes

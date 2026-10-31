@@ -16,8 +16,8 @@ alias md=mkdir
 
 # lsd is a function rather than an alias so a path argument (`lsd /tmp`)
 # reaches ls instead of less. Drop any lsd alias left over from an older
-# version of this file first, or re-sourcing would alias-expand the function
-# definition into a syntax error.
+# version of this file first: an alias takes precedence over a function of the
+# same name, so re-sourcing without this would leave the old alias active.
 unalias lsd 2>/dev/null
 if [[ "$(uname)" == "Darwin" ]]; then
   alias ls='ls -G'

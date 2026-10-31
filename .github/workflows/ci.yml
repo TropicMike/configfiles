@@ -88,16 +88,25 @@ jobs:
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.bashrc"
+          # Claude Code isn't installed either: nothing may be written to ~/.claude.
+          grep -q "SKIP claude-prompt.json (claude not installed)" /tmp/deploy-out
+          test ! -e "$HOME/.claude/settings.json"
+          test ! -e "$HOME/.claude/statusline.sh"
           # A stub at the installer's default location (not on PATH) must
           # enable the opencode config deploy.
           mkdir -p "$HOME/.opencode/bin"
           printf '#!/bin/sh\n' > "$HOME/.opencode/bin/opencode"
           chmod +x "$HOME/.opencode/bin/opencode"
-          ./deploy.sh
+          # A claude stub on PATH must enable the status line and the merge.
+          mkdir -p "$RUNNER_TEMP/bin"
+          printf '#!/bin/sh\n' > "$RUNNER_TEMP/bin/claude"
+          chmod +x "$RUNNER_TEMP/bin/claude"
+          PATH="$RUNNER_TEMP/bin:$PATH" ./deploy.sh
           test -f "$HOME/.config/opencode/opencode.jsonc"
           jq -e '.statusLine.type == "command"' "$HOME/.claude/settings.json"
           test -f "$HOME/.claude/statusline.sh"
-          # Second run must detect everything as already deployed.
+          # Second run must detect everything as already deployed. Claude is
+          # no longer on PATH here, so this also covers the ~/.claude fallback.
           out="$(./deploy.sh)"
           echo "$out" | grep -q "UNCHANGED"
 
@@ -109,6 +118,11 @@ jobs:
           work="$(mktemp -d)"
           cp deploy.sh "$work/"
           echo '{"statusLine":' > "$work/claude-prompt.json"
+          # deploy.sh only touches ~/.claude when Claude Code is present.
+          mkdir -p "$work/bin"
+          printf '#!/bin/sh\n' > "$work/bin/claude"
+          chmod +x "$work/bin/claude"
+          export PATH="$work/bin:$PATH"
           export HOME="$work/home"
           mkdir -p "$HOME"
           # Fresh install: no settings.json may be created.
@@ -182,15 +196,17 @@ jobs:
       # Exercises the Darwin case in deploy.sh (installs .zshrc).
       - name: deploy.sh smoke test
         run: |
-          # A stub opencode on PATH must enable the opencode config deploy.
+          # Stubs on PATH must enable the opencode config and Claude deploys.
           mkdir -p "$RUNNER_TEMP/bin"
           printf '#!/bin/sh\n' > "$RUNNER_TEMP/bin/opencode"
-          chmod +x "$RUNNER_TEMP/bin/opencode"
+          printf '#!/bin/sh\n' > "$RUNNER_TEMP/bin/claude"
+          chmod +x "$RUNNER_TEMP/bin/opencode" "$RUNNER_TEMP/bin/claude"
           PATH="$RUNNER_TEMP/bin:$PATH" ./deploy.sh
           test -f "$HOME/.aliases"
           test -f "$HOME/.emacs"
           test -f "$HOME/.zshrc"
           test -f "$HOME/.config/opencode/opencode.jsonc"
+          test -f "$HOME/.claude/statusline.sh"
           # Merge must keep existing settings alongside the statusLine.
           echo '{"model":"opus","statusLine":{"type":"static"}}' > "$HOME/.claude/settings.json"
           ./deploy.sh

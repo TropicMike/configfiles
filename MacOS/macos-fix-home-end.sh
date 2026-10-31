@@ -3,8 +3,8 @@
 # the beginning/end of the document) in Cocoa apps, instead of scrolling.
 # Takes effect in apps launched after this runs.
 set -eu
-mkdir -p ~/Library/KeyBindings
-cat > ~/Library/KeyBindings/DefaultKeyBinding.dict <<'EOF'
+mkdir -p "$HOME/Library/KeyBindings"
+cat > "$HOME/Library/KeyBindings/DefaultKeyBinding.dict" <<'EOF'
 {
   "\UF729" = "moveToBeginningOfLine:";
   "\UF72B" = "moveToEndOfLine:";
