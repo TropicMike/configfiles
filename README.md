@@ -50,8 +50,8 @@ A fast primary worker plus a strategic advisor subagent, in OpenCode's native V2
 
 | Agent | Model | Role |
 |-------|-------|------|
-| `deepseek41-flash` | `opencode-go/deepseek-v4.1-flash` | Default primary agent for routine engineering work (editing, commands, orchestration); 75 steps |
-| `glm-advisor` | `opencode-go/glm-5.3` | Hidden subagent for second opinions, plan critique, and architecture tradeoffs; 30 steps, temperature 0.3. Read-only: allows `read`, `glob`, `grep`, `webfetch`, `question`; denies `edit`, `shell`, `subagent`, `todowrite`. Its inline system prompt expects all context in the prompt and answers as CONCLUSION / REASONING / WATCH OUT |
+| `deepseek41-flash` | `opencode-go/deepseek-v4.1-flash` | Default primary agent for routine engineering work (editing, commands, orchestration); 150 steps |
+| `glm-advisor` | `opencode-go/glm-5.3` | Hidden subagent for second opinions, plan critique, and architecture tradeoffs; 50 steps, temperature 0.3. Read-only: allows `read`, `glob`, `grep`, `webfetch`, `question`; denies `edit`, `shell`, `subagent`, `todowrite`. Its inline system prompt expects all context in the prompt and answers as CONCLUSION / REASONING / WATCH OUT |
 
 ### Linux/
 
