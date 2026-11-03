@@ -282,11 +282,77 @@ if [ "$(id -u)" -eq 0 ]; then
 else
   OPENCODE_DIR="${XDG_CONFIG_HOME:-$DEPLOY_HOME/.config}/opencode"
 fi
+
+# The Obsidian vault — and so the AI-memory notes OpenCode loads from it — lives
+# outside this repo, so opencode.jsonc holds a placeholder for its glob that is
+# filled in per machine here. $OBSIDIAN_VAULT overrides the search below.
+# Prints only the glob on stdout; warnings go to stderr so they can't end up in
+# the rendered config. A glob matching nothing is skipped silently by OpenCode,
+# so an absent vault has to be reported loudly at deploy time instead.
+ai_memory_glob() {
+  local vault="" candidate
+  if [ -n "${OBSIDIAN_VAULT:-}" ]; then
+    vault="${OBSIDIAN_VAULT%/}"
+  else
+    for candidate in \
+      "$DEPLOY_HOME/Documents/MJS-Obsidian-Vault" \
+      "$DEPLOY_HOME/Vaults/MJS-Obsidian-Vault" \
+      "$DEPLOY_HOME/MJS-Obsidian-Vault"
+    do
+      if [ -d "$candidate/AI-memory" ]; then
+        vault="$candidate"
+        break
+      fi
+    done
+    [ -n "$vault" ] || vault="$DEPLOY_HOME/Documents/MJS-Obsidian-Vault"
+  fi
+  if [ ! -d "$vault/AI-memory" ]; then
+    echo "  WARNING: no AI-memory folder at $vault" >&2
+    echo "           set OBSIDIAN_VAULT to your vault, or AI memory will not load" >&2
+  fi
+  # Git Bash reports /c/Users/... ; OpenCode running on Windows needs C:/Users/...
+  case "$(uname)" in
+    MINGW*|MSYS*)
+      if command -v cygpath >/dev/null 2>&1; then
+        vault="$(cygpath -m "$vault")"
+      fi
+      ;;
+  esac
+  printf '%s/AI-memory/*.md' "$vault"
+}
+
+# opencode.jsonc is a template: substitute the placeholder into a temp copy,
+# then install that through backup_and_copy so the backup, unchanged-skip and
+# atomic install behaviour all still apply.
+install_opencode_config() {
+  local src="$1" dest="$2" rendered tmpdir glob
+  if [ ! -f "$src" ]; then
+    echo "  SKIP $(basename "$src") (not found)"
+    return
+  fi
+  tmpdir="$(mktemp -d)" || {
+    echo "  ERROR creating temp dir for $(basename "$src")"
+    FAILED=1
+    return 1
+  }
+  glob="$(ai_memory_glob)"
+  if ! rendered="$(cat "$src")"; then
+    echo "  ERROR reading $(basename "$src")"
+    FAILED=1
+    rm -rf "$tmpdir"
+    return 1
+  fi
+  rendered="${rendered//__AI_MEMORY_GLOB__/$glob}"
+  printf '%s\n' "$rendered" > "$tmpdir/opencode.jsonc"
+  backup_and_copy "$tmpdir/opencode.jsonc" "$dest"
+  rm -rf "$tmpdir"
+}
+
 # Only deploy if OpenCode is installed: on PATH, or in its installer's default
 # location (~/.opencode/bin, which may not be on PATH yet, e.g. under sudo or
 # before the new rc file is sourced).
 if command -v opencode >/dev/null 2>&1 || [ -x "$DEPLOY_HOME/.opencode/bin/opencode" ]; then
-  backup_and_copy "$SCRIPT_DIR/opencode/opencode.jsonc" "$OPENCODE_DIR/opencode.jsonc"
+  install_opencode_config "$SCRIPT_DIR/opencode/opencode.jsonc" "$OPENCODE_DIR/opencode.jsonc"
 else
   echo "  SKIP opencode.jsonc (opencode not installed)"
 fi

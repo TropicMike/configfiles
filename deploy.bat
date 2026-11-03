@@ -22,7 +22,29 @@ echo   SKIP opencode.jsonc ^(opencode not installed^)
 goto :end_opencode
 :have_opencode
 if not exist "%OPENCODE_DIR%" mkdir "%OPENCODE_DIR%"
-call :backup_and_copy "%SCRIPT_DIR%opencode\opencode.jsonc" "%OPENCODE_DIR%\opencode.jsonc"
+rem The Obsidian vault (and the AI-memory notes OpenCode loads from it) lives
+rem outside this repo, so opencode.jsonc holds a placeholder for its glob.
+rem Fill in this machine's path; OBSIDIAN_VAULT overrides the default below.
+if defined OBSIDIAN_VAULT (set "VAULT_DIR=%OBSIDIAN_VAULT%") else (set "VAULT_DIR=%USERPROFILE%\Documents\MJS-Obsidian-Vault")
+if exist "%VAULT_DIR%\AI-memory" goto :have_ai_memory
+echo   WARNING: no AI-memory folder at "%VAULT_DIR%"
+echo            set OBSIDIAN_VAULT to your vault, or AI memory will not load
+:have_ai_memory
+rem JSON needs forward slashes in the glob, not Windows backslashes.
+set "AI_MEMORY_GLOB=%VAULT_DIR%\AI-memory\*.md"
+set "AI_MEMORY_GLOB=%AI_MEMORY_GLOB:\=/%"
+rem Render the placeholder into a temp copy, then install that through
+rem :backup_and_copy so backup, unchanged-skip and atomic install still apply.
+set "OPENCODE_SRC=%SCRIPT_DIR%opencode\opencode.jsonc"
+set "OPENCODE_TMP=%TEMP%\opencode-rendered.jsonc"
+powershell -NoProfile -Command "$t = [IO.File]::ReadAllText($env:OPENCODE_SRC); [IO.File]::WriteAllText($env:OPENCODE_TMP, $t.Replace('__AI_MEMORY_GLOB__', $env:AI_MEMORY_GLOB))"
+if errorlevel 1 goto :render_failed
+call :backup_and_copy "%OPENCODE_TMP%" "%OPENCODE_DIR%\opencode.jsonc"
+if exist "%OPENCODE_TMP%" del "%OPENCODE_TMP%" >nul 2>&1
+goto :end_opencode
+:render_failed
+echo   ERROR rendering opencode.jsonc
+set FAILED=1
 :end_opencode
 
 rem PowerShell profile: ask each installed PowerShell where its per-user,

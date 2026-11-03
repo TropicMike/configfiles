@@ -1,6 +1,14 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "deepseek41-flash",
+  // Solved-problem notes from past sessions, in the Obsidian vault.
+  // Loaded into every session so faults already diagnosed aren't re-diagnosed.
+  // The path is a placeholder: deploy.sh and deploy.bat substitute this
+  // machine's vault location at install time. Set OBSIDIAN_VAULT to point at a
+  // vault outside the default location.
+  "instructions": [
+    "__AI_MEMORY_GLOB__"
+  ],
   "agents": {
     "deepseek41-flash": {
       "description": "Primary agent. Fast, cheap orchestration for routine engineering work.",

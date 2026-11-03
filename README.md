@@ -24,7 +24,7 @@ On Windows, run `deploy.bat` (and `Windows\setup.bat` first on a new machine).
 | `.emacs` | Emacs config — wombat theme, cross-platform mono font, sh-mode for `.aliases`, 120x40 window, `uniq-lines` alias for `delete-duplicate-lines` |
 | `claude-prompt.json` | Claude Code `statusLine` snippet pointing at `~/.claude/statusline.sh`. `deploy.sh` merges it into `~/.claude/settings.json` (requires `jq`; other settings are kept) — only when Claude Code is installed |
 | `claude-statusline.sh` | The status line itself — colored user@host:dir prompt matching the shell prompts (red for root, green otherwise; `~` at home) plus model, session cost (once non-zero), and context-window usage; requires `jq`, and renders nothing without it. `deploy.sh` installs it as `~/.claude/statusline.sh`. Not deployed by `deploy.bat` |
-| `opencode/opencode.jsonc` | Global OpenCode config — see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
+| `opencode/opencode.jsonc` | Global OpenCode config — see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Holds an `__AI_MEMORY_GLOB__` placeholder that the deploy scripts replace with this machine's Obsidian vault path. Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
 
 #### Aliases / Functions (`.aliases`)
 
@@ -54,6 +54,10 @@ A fast primary worker plus a strategic advisor subagent, in OpenCode's native V2
 | `glm-advisor` | `opencode-go/glm-5.3` | Hidden subagent for second opinions, plan critique, and architecture tradeoffs; no step cap, temperature 0.3. Read-only: allows `read`, `glob`, `grep`, `webfetch`, `question`; denies `edit`, `shell`, `subagent`, `todowrite`. Its inline system prompt expects all context in the prompt and answers as CONCLUSION / REASONING / WATCH OUT |
 
 Both agents previously had step caps (150 and 50). They are now recorded as comments in `opencode.jsonc` so the values can be restored by uncommenting a line.
+
+**Instructions — AI memory notes.** The `instructions` array loads every note in the Obsidian vault's `AI-memory/` folder into each session as background knowledge, so a fault that has already been diagnosed isn't diagnosed again. The vault lives outside this repo, so the entry is the placeholder `__AI_MEMORY_GLOB__`; `deploy.sh` and `deploy.bat` replace it at install time with `<vault>/AI-memory/*.md` (absolute, and `cygpath -m`-converted to `C:/…` when run from Git Bash, since OpenCode runs natively on Windows).
+
+The vault is looked for at `~/Documents/MJS-Obsidian-Vault`, then `~/Vaults/MJS-Obsidian-Vault`, then `~/MJS-Obsidian-Vault`; set `OBSIDIAN_VAULT` to override on any machine that keeps it elsewhere. If no `AI-memory` folder is found the scripts print a WARNING and still install the config — deliberately, because OpenCode skips a glob that matches nothing without reporting it, so a silent miss would look identical to "no memories yet".
 
 ### Linux/
 
@@ -91,8 +95,8 @@ Registry files to enable or disable the Windows context menu:
 
 | File | Description |
 |------|-------------|
-| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — installs the Claude status line script and merges `claude-prompt.json` into `~/.claude/settings.json` (both only when Claude Code is installed), installs the OpenCode config — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. `--dry-run` previews. When run as root/sudo, deploys to root's home directory |
-| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the OpenCode config, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. Does not set up the Claude status line |
+| `deploy.sh` | Deploys config files on Linux/macOS (and Git Bash on Windows, where it installs `.bashrc` too) — installs the Claude status line script and merges `claude-prompt.json` into `~/.claude/settings.json` (both only when Claude Code is installed), installs the OpenCode config with its AI-memory glob filled in — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. `--dry-run` previews. When run as root/sudo, deploys to root's home directory |
+| `deploy.bat` | Deploys config files on Windows (`.emacs`, `aliases.bat`, the OpenCode config with its AI-memory glob filled in, the PowerShell profile for both Windows PowerShell 5.1 and pwsh 7 if installed, and `.aliases`/`.bashrc` for Git Bash if installed) — backs up existing files, skips unchanged, installs atomically, and exits 1 if anything failed. Does not set up the Claude status line |
 
 ## Notes
 
