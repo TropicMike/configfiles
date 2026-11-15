@@ -286,9 +286,12 @@ fi
 # The Obsidian vault — and so the AI-memory notes OpenCode loads from it — lives
 # outside this repo, so opencode.jsonc holds a placeholder for its glob that is
 # filled in per machine here. $OBSIDIAN_VAULT overrides the search below.
-# Prints only the glob on stdout; warnings go to stderr so they can't end up in
-# the rendered config. A glob matching nothing is skipped silently by OpenCode,
-# so an absent vault has to be reported loudly at deploy time instead.
+# The vault is usually a folder named MJS-Obsidian-Vault under Documents, Vaults
+# or the home directory, but the home directory itself is also accepted in case
+# a machine opens the vault at ~. Prints only the glob on stdout; warnings go to
+# stderr so they can't end up in the rendered config. A glob matching nothing is
+# skipped silently by OpenCode, so an absent vault has to be reported loudly at
+# deploy time instead.
 ai_memory_glob() {
   local vault="" candidate
   if [ -n "${OBSIDIAN_VAULT:-}" ]; then
@@ -297,7 +300,8 @@ ai_memory_glob() {
     for candidate in \
       "$DEPLOY_HOME/Documents/MJS-Obsidian-Vault" \
       "$DEPLOY_HOME/Vaults/MJS-Obsidian-Vault" \
-      "$DEPLOY_HOME/MJS-Obsidian-Vault"
+      "$DEPLOY_HOME/MJS-Obsidian-Vault" \
+      "$DEPLOY_HOME"
     do
       if [ -d "$candidate/AI-memory" ]; then
         vault="$candidate"

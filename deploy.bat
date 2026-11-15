@@ -24,8 +24,18 @@ goto :end_opencode
 if not exist "%OPENCODE_DIR%" mkdir "%OPENCODE_DIR%"
 rem The Obsidian vault (and the AI-memory notes OpenCode loads from it) lives
 rem outside this repo, so opencode.jsonc holds a placeholder for its glob.
-rem Fill in this machine's path; OBSIDIAN_VAULT overrides the default below.
-if defined OBSIDIAN_VAULT (set "VAULT_DIR=%OBSIDIAN_VAULT%") else (set "VAULT_DIR=%USERPROFILE%\Documents\MJS-Obsidian-Vault")
+rem Fill in this machine's path; OBSIDIAN_VAULT overrides the search below,
+rem which mirrors deploy.sh: MJS-Obsidian-Vault under Documents, Vaults or the
+rem home directory, then the home directory itself (a vault opened at ~).
+rem First one holding an AI-memory folder wins.
+if defined OBSIDIAN_VAULT (set "VAULT_DIR=%OBSIDIAN_VAULT%") else (set "VAULT_DIR=")
+for %%v in (
+  "%USERPROFILE%\Documents\MJS-Obsidian-Vault"
+  "%USERPROFILE%\Vaults\MJS-Obsidian-Vault"
+  "%USERPROFILE%\MJS-Obsidian-Vault"
+  "%USERPROFILE%"
+) do if not defined VAULT_DIR if exist "%%~v\AI-memory" set "VAULT_DIR=%%~v"
+if not defined VAULT_DIR set "VAULT_DIR=%USERPROFILE%\Documents\MJS-Obsidian-Vault"
 if exist "%VAULT_DIR%\AI-memory" goto :have_ai_memory
 echo   WARNING: no AI-memory folder at "%VAULT_DIR%"
 echo            set OBSIDIAN_VAULT to your vault, or AI memory will not load

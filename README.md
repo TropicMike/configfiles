@@ -57,7 +57,7 @@ Both agents previously had step caps (150 and 50). They are now recorded as comm
 
 **Instructions — AI memory notes.** The `instructions` array loads every note in the Obsidian vault's `AI-memory/` folder into each session as background knowledge, so a fault that has already been diagnosed isn't diagnosed again. The vault lives outside this repo, so the entry is the placeholder `__AI_MEMORY_GLOB__`; `deploy.sh` and `deploy.bat` replace it at install time with `<vault>/AI-memory/*.md` (absolute, and `cygpath -m`-converted to `C:/…` when run from Git Bash, since OpenCode runs natively on Windows).
 
-The vault is looked for at `~/Documents/MJS-Obsidian-Vault`, then `~/Vaults/MJS-Obsidian-Vault`, then `~/MJS-Obsidian-Vault`; set `OBSIDIAN_VAULT` to override on any machine that keeps it elsewhere. If no `AI-memory` folder is found the scripts print a WARNING and still install the config — deliberately, because OpenCode skips a glob that matches nothing without reporting it, so a silent miss would look identical to "no memories yet".
+The vault is looked for at `~/Documents/MJS-Obsidian-Vault`, then `~/Vaults/MJS-Obsidian-Vault`, then `~/MJS-Obsidian-Vault`, then `~` itself (for a vault opened directly at the home directory); set `OBSIDIAN_VAULT` to override on any machine that keeps it elsewhere. If no `AI-memory` folder is found the scripts print a WARNING and still install the config — deliberately, because OpenCode skips a glob that matches nothing without reporting it, so a silent miss would look identical to "no memories yet".
 
 ### Linux/
 

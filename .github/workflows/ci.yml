@@ -141,6 +141,36 @@ jobs:
           cmp "$work/before.json" "$HOME/.claude/settings.json"
           test ! -e "$HOME/.claude/settings.json.bak"
 
+      # The vault is searched for under Documents, Vaults, the home directory,
+      # and finally the home directory itself.
+      - name: deploy.sh locates the Obsidian vault
+        run: |
+          export HOME="$(mktemp -d)"
+          # The installed config is JSONC, so strip whole-line comments for jq.
+          glob() { sed 's#^[[:space:]]*//.*##' "$HOME/.config/opencode/opencode.jsonc" | jq -r '.instructions[0]'; }
+          mkdir -p "$HOME/.opencode/bin"
+          printf '#!/bin/sh\n' > "$HOME/.opencode/bin/opencode"
+          chmod +x "$HOME/.opencode/bin/opencode"
+          # Not found anywhere: Documents is assumed, loudly.
+          ./deploy.sh | tee "$RUNNER_TEMP/out"
+          grep -q "WARNING: no AI-memory folder at $HOME/Documents/MJS-Obsidian-Vault" "$RUNNER_TEMP/out"
+          test "$(glob)" = "$HOME/Documents/MJS-Obsidian-Vault/AI-memory/*.md"
+          # The home directory itself counts as a vault.
+          mkdir -p "$HOME/AI-memory"
+          : > "$HOME/AI-memory/note.md"
+          ./deploy.sh
+          test "$(glob)" = "$HOME/AI-memory/*.md"
+          # A named folder under Documents still wins over the home directory.
+          mkdir -p "$HOME/Documents/MJS-Obsidian-Vault/AI-memory"
+          : > "$HOME/Documents/MJS-Obsidian-Vault/AI-memory/note.md"
+          ./deploy.sh
+          test "$(glob)" = "$HOME/Documents/MJS-Obsidian-Vault/AI-memory/*.md"
+          # OBSIDIAN_VAULT overrides the whole search.
+          mkdir -p "$RUNNER_TEMP/vault/AI-memory"
+          : > "$RUNNER_TEMP/vault/AI-memory/note.md"
+          OBSIDIAN_VAULT="$RUNNER_TEMP/vault" ./deploy.sh
+          test "$(glob)" = "$RUNNER_TEMP/vault/AI-memory/*.md"
+
       # --dry-run must report the plan without writing anything.
       - name: deploy.sh --dry-run writes nothing
         run: |
