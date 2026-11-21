@@ -19,7 +19,9 @@ alias md=mkdir
 # version of this file first: an alias takes precedence over a function of the
 # same name, so re-sourcing without this would leave the old alias active.
 unalias lsd 2>/dev/null
-if [[ "$(uname)" == "Darwin" ]]; then
+# OS checks use $OSTYPE (set by both bash and zsh) rather than $(uname), which
+# would fork on every shell start — slow in Git Bash (~35ms each).
+if [[ "$OSTYPE" == darwin* ]]; then
   alias ls='ls -G'
   # CLICOLOR_FORCE keeps ls colors when piping into less (BSD ls drops them otherwise)
   function lsd() { CLICOLOR_FORCE=1 command ls -G -lath "$@" | less -R; }
@@ -28,7 +30,7 @@ else
   function lsd() { command ls --color=always -lath "$@" | less -R; }
 fi
 
-function rmbak() { find . -maxdepth 1 -name '*~' -delete; find . -maxdepth 1 -name '#*#' -delete; }
+function rmbak() { find . -maxdepth 1 \( -name '*~' -o -name '#*#' \) -delete; }
 
 alias hex='hexdump -C'
 
@@ -38,7 +40,7 @@ alias rsync='rsync -aSP'
 # less options: -X leave output on screen after quitting, -i case-insensitive search
 export LESS=-Xi
 
-if [[ "$(uname)" == "Linux" ]]; then
+if [[ "$OSTYPE" == linux* ]]; then
   alias open='xdg-open'
 fi
 
@@ -48,9 +50,9 @@ command -v bmon >/dev/null 2>&1 && alias ntop='bmon'
 # Print each interface and its IPv4 address; use `ip` if available, else fall back to ifconfig.
 function ipa() {
   if command -v ip &> /dev/null; then
-    ip -4 -o addr show | awk '{print $2, $4}' | sed 's/\/.*//'
+    ip -4 -o addr show | awk '{sub(/\/.*/, "", $4); print $2, $4}'
   else
-    ifconfig | grep -E "^[a-z]|inet " | awk '/^[a-z]/ {iface=$1} /inet / {print iface, $2}'
+    ifconfig | awk '/^[a-z]/ {iface=$1} /inet / {print iface, $2}'
   fi
 }
 
@@ -76,10 +78,11 @@ if [ -d "$_cfg_repo/.git" ]; then
         [ "$_tries" -gt 0 ] && sleep 30
       done
       if [ "$_tries" -gt 0 ]; then
-        # Resolve the remote's default branch (origin/HEAD, set at clone time)
-        # rather than hardcoding master, so a rename to main keeps working.
-        _def="$(git -C "$_cfg_repo" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)"
-        _n="$(git -C "$_cfg_repo" rev-list --count "HEAD..${_def:-origin/master}" 2>/dev/null)"
+        # Compare against the remote's default branch (origin/HEAD, set at
+        # clone time) rather than hardcoding master, so a rename to main keeps
+        # working; fall back to origin/master if origin/HEAD isn't set.
+        _n="$(git -C "$_cfg_repo" rev-list --count HEAD..origin/HEAD 2>/dev/null ||
+              git -C "$_cfg_repo" rev-list --count HEAD..origin/master 2>/dev/null)"
         [ "${_n:-0}" -gt 0 ] &&
           echo "configfiles: ${_n} new commit(s) upstream — run: git -C $_cfg_repo pull && $_cfg_repo/deploy.sh"
       fi

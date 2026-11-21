@@ -19,6 +19,8 @@ IFS=$'\x1f' read -r cwd model cost ctx < <(jq -r '[
     (.cost.total_cost_usd // 0 | if . > 0 then tostring else "" end),
     (.context_window.used_percentage // "" | tostring)
   ] | join("\u001f")' 2>/dev/null)
+# jq on Windows ends its output with CRLF, which read leaves on the last field.
+ctx="${ctx%$'\r'}"
 [ -n "$cwd" ] || exit 0
 
 # Show ~ for the home directory, like \W / %1~ in the shell prompts.
@@ -30,11 +32,21 @@ else
 fi
 if [ "$EUID" -eq 0 ]; then uc=31; else uc=32; fi
 
-out=$(printf '\033[1;%sm%s\033[0m@\033[33m%s\033[0m:\033[1;34m%s\033[0m' \
-  "$uc" "${USER:-$(id -un)}" "$(hostname -s)" "$dir")
+# This runs on every status line redraw, so avoid forks: printf -v instead of
+# $(printf ...), and bash's $HOSTNAME (short form, like hostname -s) instead
+# of running hostname. jq above is the only external process.
+host="${HOSTNAME:-$(hostname)}"
+printf -v out '\033[1;%sm%s\033[0m@\033[33m%s\033[0m:\033[1;34m%s\033[0m' \
+  "$uc" "${USER:-$(id -un)}" "${host%%.*}" "$dir"
 sep=$'\033[2m|\033[0m'
 [ -n "$model" ] && out+=" $sep $model"
-# shellcheck disable=SC2016  # literal $ for the currency sign
-[ -n "$cost" ] && out+=" $sep $(printf '$%.2f' "$cost")"
-[ -n "$ctx" ] && out+=" $sep Ctx:$(printf '%.0f' "$ctx")%"
+if [ -n "$cost" ]; then
+  # shellcheck disable=SC2016  # literal $ for the currency sign
+  printf -v cost '$%.2f' "$cost"
+  out+=" $sep $cost"
+fi
+if [ -n "$ctx" ]; then
+  printf -v ctx '%.0f' "$ctx"
+  out+=" $sep Ctx:$ctx%"
+fi
 printf '%s' "$out"

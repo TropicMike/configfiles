@@ -16,8 +16,21 @@ fi
 
 # Point the linker at the active macOS SDK's lib dir so compiling/linking
 # against system libraries works (xcrun resolves the current SDK path).
+# xcrun is slow (often 50-200ms, more after an Xcode/CLT update), so its
+# answer is cached and only re-queried once the cached SDK dir disappears.
+# After switching SDKs with xcode-select, delete the cache file to refresh.
 if command -v xcrun &>/dev/null; then
-  export LIBRARY_PATH="$(xcrun --show-sdk-path)/usr/lib"
+  _sdk_cache="${XDG_CACHE_HOME:-$HOME/.cache}/macos-sdk-path"
+  _sdk=""
+  [ -r "$_sdk_cache" ] && read -r _sdk < "$_sdk_cache"
+  if [ -z "$_sdk" ] || [ ! -d "$_sdk" ]; then
+    _sdk="$(xcrun --show-sdk-path 2>/dev/null)"
+    if [ -n "$_sdk" ]; then
+      mkdir -p "${_sdk_cache%/*}" && printf '%s\n' "$_sdk" > "$_sdk_cache"
+    fi
+  fi
+  [ -n "$_sdk" ] && export LIBRARY_PATH="$_sdk/usr/lib"
+  unset _sdk _sdk_cache
 fi
 
 # Claude Code mouse click handling: 0 (set here) keeps it enabled; set to 1

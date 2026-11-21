@@ -54,13 +54,19 @@ function ipa {
 # Prompt: user@host:dir>  -- username red when elevated / green otherwise
 # (visual warning that you're admin), hostname yellow, dir blue; matches the
 # bash/zsh prompts. Also sets the window title to the hostname each prompt.
+# Elevation can't change within a session, so it's checked once here rather
+# than on every prompt.
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+if (([Security.Principal.WindowsPrincipal]$identity).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    $script:promptUserColor = 'Red'
+} else {
+    $script:promptUserColor = 'Green'
+}
+Remove-Variable -Name identity
 function prompt {
     $Host.UI.RawUI.WindowTitle = $env:COMPUTERNAME
-    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $elevated = ([Security.Principal.WindowsPrincipal]$identity).IsInRole(
-        [Security.Principal.WindowsBuiltInRole]::Administrator)
-    if ($elevated) { $userColor = 'Red' } else { $userColor = 'Green' }
-    Write-Host "$env:USERNAME@" -NoNewline -ForegroundColor $userColor
+    Write-Host "$env:USERNAME@" -NoNewline -ForegroundColor $script:promptUserColor
     Write-Host $env:COMPUTERNAME -NoNewline -ForegroundColor Yellow
     Write-Host ':' -NoNewline
     $dir = Split-Path -Path (Get-Location).Path -Leaf
@@ -78,11 +84,12 @@ function prompt {
 $cfgRepo = Join-Path $HOME 'Repos\configfiles'
 if (-not (Test-Path (Join-Path $cfgRepo '.git'))) { $cfgRepo = 'C:\Repos\configfiles' }
 if ((Test-Path (Join-Path $cfgRepo '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
-    # Resolve the remote's default branch (origin/HEAD, set at clone time)
-    # rather than hardcoding master, so a rename to main keeps working.
-    $def = git -C $cfgRepo rev-parse --abbrev-ref origin/HEAD 2>$null
-    if (-not $def) { $def = 'origin/master' }
-    $n = git -C $cfgRepo rev-list --count "HEAD..$def" 2>$null
+    # Compare against the remote's default branch (origin/HEAD, set at clone
+    # time) rather than hardcoding master, so a rename to main keeps working;
+    # fall back to origin/master if origin/HEAD isn't set. One git call in the
+    # common case, since this runs synchronously at startup.
+    $n = git -C $cfgRepo rev-list --count HEAD..origin/HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { $n = git -C $cfgRepo rev-list --count HEAD..origin/master 2>$null }
     if ([int]$n -gt 0) {
         Write-Host "configfiles: $n new commit(s) upstream - run: git -C `"$cfgRepo`" pull; & `"$cfgRepo\deploy.bat`"" -ForegroundColor Yellow
     }
@@ -96,4 +103,4 @@ if ((Test-Path (Join-Path $cfgRepo '.git')) -and (Get-Command git -ErrorAction S
     if ($PSVersionTable.PSEdition -eq 'Core') { $psExe = Join-Path $PSHOME 'pwsh.exe' } else { $psExe = Join-Path $PSHOME 'powershell.exe' }
     Start-Process -FilePath $psExe -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded -WindowStyle Hidden
 }
-Remove-Variable -Name cfgRepo, def, n, repoLiteral, fetch, encoded, psExe -ErrorAction SilentlyContinue
+Remove-Variable -Name cfgRepo, n, repoLiteral, fetch, encoded, psExe -ErrorAction SilentlyContinue
