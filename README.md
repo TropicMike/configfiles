@@ -12,6 +12,8 @@ To install the files for the **root** user, run the script with `sudo` (e.g. `su
 
 `./deploy.sh --dry-run` (`-n`) prints what would be installed, backed up, or merged without writing anything; `--help` lists the options.
 
+Deploying also installs the OpenCode [`verify-config`](#opencode-skill--verify-config-opencodeskillsverify-config) skill and, where `~/.opencode/bin` exists, puts `verify-config` on your `PATH`. Run it after editing OpenCode config to see which files were actually loaded and what model each agent resolves to.
+
 On Windows, run `deploy.bat` (and `Windows\setup.bat` first on a new machine).
 
 ## Files
@@ -26,7 +28,7 @@ On Windows, run `deploy.bat` (and `Windows\setup.bat` first on a new machine).
 | `claude-statusline.sh` | The status line itself — colored user@host:dir prompt matching the shell prompts (red for root, green otherwise; `~` at home) plus model, session cost (once non-zero), and context-window usage; requires `jq`, and renders nothing without it. `deploy.sh` installs it as `~/.claude/statusline.sh`. Not deployed by `deploy.bat` |
 | `opencode/opencode.jsonc` | Global OpenCode config — the three-model workflow; see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Holds an `__AI_MEMORY_GLOB__` placeholder that the deploy scripts replace with this machine's Obsidian vault path. Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
 | `opencode/opencode.dual-agent.jsonc` | The earlier two-agent config (`deepseek41-flash` + `glm-advisor`), kept as a fallback. **Not deployed** — nothing installs it. To roll back, copy it over `opencode.jsonc` (or over the deployed copy, filling in the placeholder by hand) |
-| `opencode/skills/verify-config/` | Global OpenCode skill `verify-config` (`SKILL.md` + `scripts/verify_config.py`). Reports which config files were actually loaded, in precedence order, and which model every agent resolves to. Deployed to the same config directory's `skills/` folder |
+| `opencode/skills/verify-config/` | Global OpenCode skill `verify-config` (`SKILL.md` + `scripts/verify_config.py`). Reports which config files were actually loaded, in precedence order, and which model every agent resolves to — see [OpenCode skill](#opencode-skill--verify-config-opencodeskillsverify-config). Deployed to the same config directory's `skills/` folder |
 
 #### Aliases / Functions (`.aliases`)
 
