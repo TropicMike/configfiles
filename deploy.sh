@@ -352,13 +352,56 @@ install_opencode_config() {
   rm -rf "$tmpdir"
 }
 
+# Skills are plain files under opencode/skills/<id>/, deployed into the OpenCode
+# config directory's skills/ folder. Each file goes through backup_and_copy so
+# the backup, unchanged-skip and atomic install behaviour all apply. Their .md
+# and .py extensions are excluded from the sourceable list further down: these
+# are data, not shell, and must never be sourced.
+install_opencode_skills() {
+  local src="$1" dest="$2" file rel found=0
+  if [ ! -d "$src" ]; then
+    echo "  SKIP opencode skills (not found)"
+    return
+  fi
+  while IFS= read -r file; do
+    found=1
+    rel="${file#"$src"/}"
+    backup_and_copy "$file" "$dest/$rel"
+  done < <(find "$src" -type f ! -name '*.pyc' ! -path '*/__pycache__/*' | sort)
+  [ "$found" -eq 1 ] || echo "  SKIP opencode skills (no files)"
+}
+
+# The verify-config skill's script is useful as a plain command. Expose it in
+# OpenCode's installer directory, which is normally already on PATH. Skipped on
+# machines where that directory does not exist (e.g. under sudo).
+install_verify_config_link() {
+  local src="$OPENCODE_DIR/skills/verify-config/scripts/verify_config.py"
+  local bindir="$DEPLOY_HOME/.opencode/bin"
+  local link="$bindir/verify-config"
+  [ -d "$bindir" ] && [ -f "$src" ] || return 0
+  if [ -L "$link" ] && [ "$(readlink "$link")" = "$src" ]; then
+    return 0
+  fi
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "  WOULD LINK $link -> $src"
+    return 0
+  fi
+  chmod +x "$src" 2>/dev/null || true
+  if ln -sf "$src" "$link"; then
+    echo "  LINKED $link -> $src"
+  fi
+}
+
 # Only deploy if OpenCode is installed: on PATH, or in its installer's default
 # location (~/.opencode/bin, which may not be on PATH yet, e.g. under sudo or
 # before the new rc file is sourced).
 if command -v opencode >/dev/null 2>&1 || [ -x "$DEPLOY_HOME/.opencode/bin/opencode" ]; then
   install_opencode_config "$SCRIPT_DIR/opencode/opencode.jsonc" "$OPENCODE_DIR/opencode.jsonc"
+  install_opencode_skills "$SCRIPT_DIR/opencode/skills" "$OPENCODE_DIR/skills"
+  install_verify_config_link
 else
   echo "  SKIP opencode.jsonc (opencode not installed)"
+  echo "  SKIP opencode skills (opencode not installed)"
 fi
 
 case "$(uname)" in
@@ -380,11 +423,12 @@ esac
 echo ""
 
 # Determine sourceable files (exclude non-shell configs like .emacs, and
-# scripts like the Claude status line that are run, not sourced)
+# scripts like the Claude status line that are run, not sourced). Skill files
+# arrive here through backup_and_copy but are data — never source them.
 SOURCEABLE=()
 for f in "${CHANGED_SHELL_FILES[@]}"; do
   case "$f" in
-    *.emacs|*.jsonc|*.sh) ;;
+    *.emacs|*.jsonc|*.sh|*.md|*.py) ;;
     *) SOURCEABLE+=("$f") ;;
   esac
 done

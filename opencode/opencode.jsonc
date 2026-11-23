@@ -1,6 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "deepseek41-flash",
+
+  // Default model for every project. Implementation, refactoring, test/build fixes.
+  "model": "opencode-go/deepseek-v4.1-flash",
+
   // Solved-problem notes from past sessions, in the Obsidian vault.
   // Loaded into every session so faults already diagnosed aren't re-diagnosed.
   // The path is a placeholder: deploy.sh and deploy.bat substitute this
@@ -9,7 +13,44 @@
   "instructions": [
     "__AI_MEMORY_GLOB__"
   ],
+
   "agents": {
+    // ---------------------------------------------------------------------
+    // Zero-quota background maintenance.
+    // V2 replaced the deprecated `small_model` with the hidden `title` agent,
+    // and its siblings `summary` and `compaction` cover the rest of the
+    // lightweight work. All three run on the free model so they cost nothing.
+    // ---------------------------------------------------------------------
+    "title": {
+      "model": "opencode-go/hy4-flash-free"
+    },
+    "summary": {
+      "model": "opencode-go/hy4-flash-free"
+    },
+    "compaction": {
+      "model": "opencode-go/hy4-flash-free"
+    },
+
+    // Fast, zero-quota repository mapping and symbol lookup.
+    "explore": {
+      "model": "opencode-go/hy4-flash-free"
+    },
+
+    // Planning. GLM-5.3 writes execution-ready plans the build agent applies
+    // directly, without re-scanning the codebase.
+    "plan": {
+      "model": "opencode-go/glm-5.3",
+      "system": "You produce concrete, execution-ready implementation plans. Another agent will implement your plan directly and must not need to re-scan the codebase to understand it.\n\nWork in whatever language, framework, and build system the project actually uses. Never assume an ecosystem (not every project is JS, not every build is npm); infer conventions from the files you read.\n\nEvery plan you write contains these sections, in this order:\n\n1. GOAL AND SCOPE -- the intended outcome in one or two sentences, plus explicit non-goals.\n2. ORDERED STEPS -- each step is a single implementable change, numbered in dependency order.\n3. STEP DETAILS -- for every step give:\n   - exact file paths, repo-relative from the project root;\n   - exact line ranges or symbol anchors (function, method, type, struct, class, module, constant, config key). Quote the current signature or declaration verbatim and give the new signature verbatim;\n   - the precise edit: identifiers added, removed, or renamed; new behavior; error handling and edge cases.\n4. DEPENDENCY AND BUILD CHANGES -- exact package names and versions to add, bump, or remove, and which manifest and lockfile they touch. Include any schema, migration, codegen, config, or CI changes.\n5. VERIFICATION -- copy-pasteable commands in the order the project runs them (format, lint, typecheck, unit, integration, build), each with the result that proves it passed.\n6. RISKS AND ROLLBACK -- what can break, how to detect it, and how to revert.\n\nRules:\n- Read the code before describing it. Never invent a path, symbol, API, or line number. If something is unverified, label it NEEDS-CONFIRMATION and give the exact command that confirms it.\n- Line numbers are from the files as you read them; state that they shift as edits land.\n- Prefer the smallest change that meets the goal. No speculative refactors, no unrelated cleanup.\n- Output the plan only. Do not edit files."
+    },
+
+    // Implementation, refactoring, and test/build fixes.
+    "build": {
+      "model": "opencode-go/deepseek-v4.1-flash"
+    },
+
+    // ---------------------------------------------------------------------
+    // Pre-existing custom agents, preserved as-is.
+    // ---------------------------------------------------------------------
     "deepseek41-flash": {
       "description": "Primary agent. Fast, cheap orchestration for routine engineering work.",
       "mode": "primary",

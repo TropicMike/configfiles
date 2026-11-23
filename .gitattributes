@@ -22,3 +22,7 @@
 # JSON config: Unix line endings (LF)
 *.json    text eol=lf
 *.jsonc   text eol=lf
+
+# Skill files: Unix line endings (LF)
+*.md      text eol=lf
+*.py      text eol=lf

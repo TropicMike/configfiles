@@ -51,6 +51,7 @@ powershell -NoProfile -Command "$t = [IO.File]::ReadAllText($env:OPENCODE_SRC); 
 if errorlevel 1 goto :render_failed
 call :backup_and_copy "%OPENCODE_TMP%" "%OPENCODE_DIR%\opencode.jsonc"
 if exist "%OPENCODE_TMP%" del "%OPENCODE_TMP%" >nul 2>&1
+call :install_opencode_skills
 goto :end_opencode
 :render_failed
 echo   ERROR rendering opencode.jsonc
@@ -85,6 +86,34 @@ goto :eof
 :deploy_ps_profile
 for %%d in ("%~1") do if not exist "%%~dpd" mkdir "%%~dpd"
 call :backup_and_copy "%SCRIPT_DIR%Windows\Microsoft.PowerShell_profile.ps1" "%~1"
+goto :eof
+
+rem Skills live under opencode\skills\<id>\ in the repo and deploy into the
+rem config dir's skills\ folder. One :backup_and_copy per file keeps the backup,
+rem unchanged-skip and atomic install behaviour. Creates each directory it needs
+rem because :backup_and_copy does not. Copies the skill root plus one level of
+rem subdirectories (scripts\), which covers the current layout.
+:install_opencode_skills
+if exist "%SCRIPT_DIR%opencode\skills" goto :skills_found
+echo   SKIP opencode skills ^(not found^)
+goto :eof
+:skills_found
+for /d %%s in ("%SCRIPT_DIR%opencode\skills\*") do call :install_one_skill "%%~fs"
+goto :eof
+
+:install_one_skill
+set "src_root=%~1"
+set "dest_root=%OPENCODE_DIR%\skills\%~nx1"
+if exist "%dest_root%" goto :skill_root_exists
+mkdir "%dest_root%" >nul 2>&1
+:skill_root_exists
+rem Root files only: skip directories, which have no extension.
+for %%f in ("%src_root%\*") do if not "%%~xf"=="" call :backup_and_copy "%%~ff" "%dest_root%\%%~nxf"
+if not exist "%src_root%\scripts" goto :eof
+if exist "%dest_root%\scripts" goto :skill_scripts_exists
+mkdir "%dest_root%\scripts" >nul 2>&1
+:skill_scripts_exists
+for %%f in ("%src_root%\scripts\*") do if not "%%~xf"=="" call :backup_and_copy "%%~ff" "%dest_root%\scripts\%%~nxf"
 goto :eof
 
 :backup_and_copy
