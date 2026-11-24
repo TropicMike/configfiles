@@ -23,7 +23,12 @@ verify-config                 # report on the shared service's location
 verify-config --dir .         # report on the current directory instead
 ```
 
-If `~/.opencode/bin` is on PATH, `verify-config` works from anywhere.
+If `~/.opencode/bin` is on PATH, `verify-config` works from anywhere. Windows has
+no shim, so run the script directly there:
+
+```bat
+python "%USERPROFILE%\.config\opencode\skills\verify-config\scripts\verify_config.py"
+```
 
 **Understand the binding first.** `opencode api` talks to the shared background
 service, and that service's location is fixed when it starts — it does not

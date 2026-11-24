@@ -16,6 +16,8 @@ Deploying also installs the OpenCode [`verify-config`](#opencode-skill--verify-c
 
 On Windows, run `deploy.bat` (and `Windows\setup.bat` first on a new machine).
 
+The OpenCode config and skill are documented in full in [`opencode/README.md`](opencode/README.md) — the three-model workflow and its rationale, the `__AI_MEMORY_GLOB__` substitution and vault discovery, rollback to the two-agent config, and the `verify-config` skill's flags, exit codes, output, and per-platform behaviour.
+
 ## Files
 
 ### Shared (root directory)
@@ -28,7 +30,8 @@ On Windows, run `deploy.bat` (and `Windows\setup.bat` first on a new machine).
 | `claude-statusline.sh` | The status line itself — colored user@host:dir prompt matching the shell prompts (red for root, green otherwise; `~` at home) plus model, session cost (once non-zero), and context-window usage; requires `jq`, and renders nothing without it. `deploy.sh` installs it as `~/.claude/statusline.sh`. Not deployed by `deploy.bat` |
 | `opencode/opencode.jsonc` | Global OpenCode config — the three-model workflow; see [OpenCode agents](#opencode-agents-opencodeopencodejsonc). Holds an `__AI_MEMORY_GLOB__` placeholder that the deploy scripts replace with this machine's Obsidian vault path. Deployed only if `opencode` is installed (on PATH or in `~/.opencode/bin`), to `$XDG_CONFIG_HOME/opencode` (default `~/.config/opencode`, `%USERPROFILE%\.config\opencode` on Windows) |
 | `opencode/opencode.dual-agent.jsonc` | The earlier two-agent config (`deepseek41-flash` + `glm-advisor`), kept as a fallback. **Not deployed** — nothing installs it. To roll back, copy it over `opencode.jsonc` (or over the deployed copy, filling in the placeholder by hand) |
-| `opencode/skills/verify-config/` | Global OpenCode skill `verify-config` (`SKILL.md` + `scripts/verify_config.py`). Reports which config files were actually loaded, in precedence order, and which model every agent resolves to — see [OpenCode skill](#opencode-skill--verify-config-opencodeskillsverify-config). Deployed to the same config directory's `skills/` folder |
+| `opencode/skills/verify-config/` | Global OpenCode skill `verify-config` (`SKILL.md` + `scripts/verify_config.py`). Reports which config files were actually loaded, in precedence order, and which model every agent resolves to — see [OpenCode skill](#opencode-skill--verify-config-opencodeskillsverify-config) and [`opencode/README.md`](opencode/README.md). Deployed to the same config directory's `skills/` folder. The script runs unchanged on Linux, macOS, and Windows — it resolves the `opencode` CLI through `PATH` (npm's Windows `.cmd` shim included) with a `~/.opencode/bin` fallback, and honours `XDG_CONFIG_HOME`/`XDG_DATA_HOME` |
+| `opencode/README.md` | Documentation for the OpenCode section — how the config and skill deploy, the three-model workflow, the placeholder, rollback, and the skill's flags, exit codes, and platform notes. Not deployed |
 
 #### Aliases / Functions (`.aliases`)
 
@@ -84,7 +87,9 @@ It prints the loaded config documents in precedence order with any project overr
 
 `opencode api` binds to the shared background service, whose location is fixed when that service starts — it does not follow the caller's directory. That is why `--dir` exists: it starts a private `--standalone` server bound to the path given. A freshly started standalone server reports an empty agent registry, so in that mode the script derives each agent's model by merging the loaded documents and labels the section accordingly.
 
-`deploy.sh` installs the skill and, when `~/.opencode/bin` exists, symlinks `verify-config` into it. `deploy.bat` installs the skill files but creates no shim; on Windows run it as `python "%USERPROFILE%\.config\opencode\skills\verify-config\scripts\verify_config.py"`.
+`deploy.sh` installs the skill and, when `~/.opencode/bin` exists, symlinks `verify-config` into it. `deploy.bat` installs the skill files but creates no shim, so on Windows run it directly as `python "%USERPROFILE%\.config\opencode\skills\verify-config\scripts\verify_config.py"`.
+
+The script runs unchanged on Linux, macOS, and Windows. It resolves the `opencode` CLI through `PATH` rather than invoking a bare name: npm installs `opencode` on Windows as a `.cmd`/`.ps1` shim, and `CreateProcess` does not consult `PATHEXT`, so an unresolved name failed with `WinError 2`. A `.ps1` shim is run through `pwsh`/`powershell`, and `~/.opencode/bin` is the fallback when the install directory is not on `PATH` yet. `XDG_CONFIG_HOME` and `XDG_DATA_HOME` are honoured when set, matching where deployment installs and where OpenCode writes its log. Exit codes: `0` config loaded, `1` (`--quiet` only) a project config shadows the global one, `2` OpenCode could not be queried.
 
 ### Linux/
 

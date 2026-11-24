@@ -16,20 +16,39 @@ Usage:
 when that service starts -- it does NOT follow your current directory. For a
 directory other than the service's location, pass --dir, which runs a private
 standalone server bound to that directory.
+
+Runs on Linux, macOS and Windows. The opencode CLI is located via PATH (npm's
+Windows .cmd shim included), falling back to ~/.opencode/bin. XDG_CONFIG_HOME
+and XDG_DATA_HOME are honoured when set.
 """
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 
 TARGET_DIR = None
 STANDALONE = False
 
-GLOBAL_DIR = os.path.expanduser("~/.config/opencode")
-GLOBAL_FILES = {os.path.join(GLOBAL_DIR, "opencode.json"),
-                os.path.join(GLOBAL_DIR, "opencode.jsonc")}
-LOG = os.path.expanduser("~/.local/share/opencode/log/opencode.log")
+
+def xdg_dir(env_var, default):
+    """Resolve an XDG base directory, using the spec's default if unset."""
+    return os.path.expanduser(os.environ.get(env_var) or default)
+
+
+def norm_path(path):
+    """Normalise a path for comparison (case-insensitive on Windows)."""
+    return os.path.normcase(os.path.normpath(path)) if path else path
+
+
+CONFIG_HOME = xdg_dir("XDG_CONFIG_HOME", "~/.config")
+DATA_HOME = xdg_dir("XDG_DATA_HOME", "~/.local/share")
+
+GLOBAL_DIR = os.path.join(CONFIG_HOME, "opencode")
+GLOBAL_FILES = {norm_path(os.path.join(GLOBAL_DIR, "opencode.json")),
+                norm_path(os.path.join(GLOBAL_DIR, "opencode.jsonc"))}
+LOG = os.path.join(DATA_HOME, "opencode", "log", "opencode.log")
 
 USE_COLOR = sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
 
@@ -46,17 +65,66 @@ def red(t):    return c(t, "31")
 def cyan(t):   return c(t, "36")
 
 
-def api(path):
-    cmd = ["opencode", "api", "get", path]
+def find_opencode():
+    """Locate the opencode CLI on PATH, including the Windows shims.
+
+    `opencode` from npm is a .cmd (plus .ps1) wrapper on Windows. CreateProcess
+    does not consult PATHEXT, so a bare "opencode" fails there; resolving the
+    name with shutil.which() first yields a path that can be executed directly.
+    """
+    candidates = ["opencode"]
+    if os.name == "nt":
+        candidates += ["opencode.exe", "opencode.cmd", "opencode.bat",
+                       "opencode.ps1"]
+    for name in candidates:
+        found = shutil.which(name)
+        if found:
+            return found
+    # The installer's private directory is not always on PATH yet.
+    exe = "opencode.exe" if os.name == "nt" else "opencode"
+    fallback = os.path.join(os.path.expanduser("~"), ".opencode", "bin", exe)
+    return fallback if os.path.isfile(fallback) else None
+
+
+def opencode_command(path):
+    """Build the argv for `opencode api get <path>` on this platform."""
+    exe = find_opencode()
+    if exe is None:
+        raise RuntimeError(
+            "cannot find the `opencode` CLI on PATH (looked for opencode, "
+            "opencode.exe, opencode.cmd, opencode.bat, opencode.ps1 and "
+            "~/.opencode/bin). Install OpenCode, or put its install "
+            "directory on PATH.")
+    args = ["api", "get", path]
     if STANDALONE:
-        cmd.append("--standalone")
-    proc = subprocess.run(cmd, capture_output=True, text=True,
-                          cwd=TARGET_DIR or None)
+        args.append("--standalone")
+    if exe.lower().endswith(".ps1"):
+        # A PowerShell shim cannot be executed directly; run it via its host.
+        shell = (shutil.which("pwsh") or shutil.which("powershell")
+                 or "powershell")
+        return [shell, "-NoProfile", "-NonInteractive",
+                "-ExecutionPolicy", "Bypass", "-File", exe] + args
+    return [exe] + args
+
+
+def api(path):
+    cmd = opencode_command(path)
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              encoding="utf-8", errors="replace",
+                              cwd=TARGET_DIR or None)
+    except OSError as exc:
+        raise RuntimeError(f"could not run `{cmd[0]}`: {exc}") from exc
     if proc.returncode != 0:
         raise RuntimeError(f"`{' '.join(cmd)}` failed:\n{proc.stderr.strip()}")
-    if not proc.stdout.strip():
+    out = proc.stdout.lstrip("\ufeff").strip()
+    if not out:
         raise RuntimeError(f"`{' '.join(cmd)}` returned nothing")
-    return json.loads(proc.stdout)
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f"`{' '.join(cmd)}` did not return JSON:\n{out[:400]}") from exc
 
 
 def model_ref(model):
@@ -170,7 +238,7 @@ def main():
         path = doc.get("path")
         info = doc.get("info") or {}
         label = path or f"{dim('(built-in defaults)')}"
-        is_global = path in GLOBAL_FILES
+        is_global = norm_path(path) in GLOBAL_FILES
         is_project = path is not None and not is_global
 
         if is_global:
