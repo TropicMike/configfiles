@@ -45,12 +45,19 @@ jobs:
           zsh -n .aliases
           zsh -n MacOS/.zshrc
 
-      # opencode.jsonc may gain // comments (JSONC), which jq rejects, so
-      # whole-line comments are stripped before validating.
+      # opencode.jsonc and its dual-agent backup may gain // comments (JSONC),
+      # which jq rejects, so whole-line comments are stripped before
+      # validating. The backup is checked too: a rollback config that does not
+      # parse would only be discovered on the day it is needed.
       - name: JSON config validity
         run: |
           jq empty claude-prompt.json
-          sed 's#^[[:space:]]*//.*##' opencode/opencode.jsonc | jq empty
+          for f in opencode/opencode.jsonc opencode/opencode.dual-agent.jsonc; do
+            if ! sed 's#^[[:space:]]*//.*##' "$f" | jq empty; then
+              echo "invalid JSONC: $f"
+              exit 1
+            fi
+          done
 
       # .gitattributes keeps *.reg bytes untouched (-text) because regedit
       # wants UTF-16 LE with a BOM; check the bytes really are that.
