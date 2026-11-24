@@ -21,6 +21,6 @@ When modifying files:
 - Maintain existing alias naming conventions and patterns
 - `deploy.sh` and `deploy.bat` are meant to behave alike (backup to `.bak`, skip unchanged, atomic install, exit 1 on failure); change both together
 - `deploy.sh` may be sourced from bash or zsh: never `exit` or set traps on the sourced path
-- CI (`.github/workflows/ci.yml`) runs shellcheck, bash/zsh syntax + source checks, `deploy.sh` behavior tests on both Linux and macOS runners (the macOS job exercises the Darwin-only branches), and PSScriptAnalyzer on every push — new shell files should be added to those checks
+- CI (`.github/workflows/ci.yml`) runs shellcheck, bash/zsh syntax + source checks, `deploy.sh` behavior tests on both Linux and macOS runners (the macOS job exercises the Darwin-only branches), PSScriptAnalyzer, and the cross-platform `verify-config` smoke test (`tests/verify_config_smoke.py`, on Linux, macOS, and Windows) on every push — new shell files should be added to those checks
 
 Deployment is driven by `deploy.sh` (Linux/macOS) and `deploy.bat` (Windows), which back up existing files before overwriting.

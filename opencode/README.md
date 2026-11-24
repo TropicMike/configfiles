@@ -202,6 +202,21 @@ opencode api get /api/model/default # effective default model for this directory
 opencode api get /api/location      # which project OpenCode thinks you are in
 ```
 
+### Tests
+
+[`../tests/verify_config_smoke.py`](../tests/verify_config_smoke.py) runs the
+script end to end against a stub CLI, so no service, network, or login is
+needed. CI runs it on Linux, macOS, and Windows; the Windows leg is the one that
+proves npm's `.cmd` shim is found.
+
+```sh
+python tests/verify_config_smoke.py
+```
+
+It asserts the report renders, `--json` is valid, `--quiet` returns 1 when a
+project config shadows the global one, and a missing CLI exits 2 with a message
+rather than a traceback.
+
 ## Troubleshooting
 
 **"My config change had no effect."** A session pins its agent and model when

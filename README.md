@@ -123,6 +123,12 @@ Registry files to enable or disable the Windows context menu:
 - `enable_right_click_Allusers.reg` / `disable_right_click_Allusers.reg`
 - `enable_right_click_Currentuser.reg` / `disable_right_click_Currentuser.reg`
 
+### tests/
+
+| File | Description |
+|------|-------------|
+| `verify_config_smoke.py` | Cross-platform smoke test for the `verify-config` skill's script, run by CI on Linux, macOS, and Windows. Installs a stub `opencode` CLI (a `.cmd` shim on Windows, the case that used to fail) and asserts the script resolves it, renders the report, parses `--json`, honours `--quiet` and the `0`/`1`/`2` exit codes, and fails with exit 2 and no traceback when no CLI exists. Needs no service, network, or login — run it directly with `python tests/verify_config_smoke.py` |
+
 ### Deploy Scripts
 
 | File | Description |
@@ -136,4 +142,4 @@ Registry files to enable or disable the Windows context menu:
   - Shell scripts and dotfiles use Unix line endings (LF)
   - Batch files and PowerShell scripts use DOS line endings (CRLF)
   - Registry files use UTF-16 encoding with BOM
-- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, JSON and `.reg` encoding checks, a status line render test, `deploy.sh` behavior tests (smoke tests on Linux and macOS covering the Darwin-only branches, dry run, symlinked and unwritable destinations, invalid snippet, sourcing from bash and zsh), and PSScriptAnalyzer on every push
+- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, JSON and `.reg` encoding checks, a status line render test, `deploy.sh` behavior tests (smoke tests on Linux and macOS covering the Darwin-only branches, dry run, symlinked and unwritable destinations, invalid snippet, sourcing from bash and zsh), PSScriptAnalyzer, and the `verify-config` smoke test on Linux, macOS, and Windows on every push
