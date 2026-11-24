@@ -1,10 +1,18 @@
 {
-  // ALTERNATE CONFIG — not deployed. This is the earlier dual-agent setup
-  // (deepseek41-flash primary + glm-advisor subagent only), kept as a fallback.
-  // The live config is opencode.jsonc in this directory. To go back to this
-  // one, copy this file over opencode.jsonc, or after deploying replace
-  // ~/.config/opencode/opencode.jsonc with it and fill in __AI_MEMORY_GLOB__
-  // by hand (deploy.sh only renders opencode.jsonc).
+  // BACKUP CONFIG — not deployed. Nothing installs this file; the live config
+  // is opencode.jsonc in this directory.
+  //
+  // It is the earlier dual-agent setup, kept as the rollback target:
+  // deepseek41-flash as primary plus the glm-advisor subagent only, with none
+  // of the plan, explore, title, summary or compaction agents. The two agents
+  // it does define are carried over unchanged from the live config.
+  //
+  // To roll back, in this repo:
+  //     cp opencode/opencode.dual-agent.jsonc opencode/opencode.jsonc
+  //     ./deploy.sh                  # or deploy.bat on Windows
+  // or copy this file over the deployed ~/.config/opencode/opencode.jsonc and
+  // fill in __AI_MEMORY_GLOB__ by hand: deploy.sh and deploy.bat render only
+  // opencode.jsonc, so the placeholder here is never substituted.
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "deepseek41-flash",
   // Solved-problem notes from past sessions, in the Obsidian vault.
