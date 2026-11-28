@@ -260,6 +260,16 @@ jobs:
           zsh -c 'source "$HOME/.aliases" && type ipa >/dev/null && type rmbak >/dev/null && alias ls | grep -q -- "-G"'
           zsh -c 'source "$HOME/.zshrc" && [ -n "$PROMPT" ] && [ -n "$LIBRARY_PATH" ]'
 
+      # The runner has no nvm, so the check above already covers .zshrc's
+      # no-op path — including its exit status, which is what a bare
+      # `[ -s ... ] && ...` guard got wrong. This stubs ~/.nvm to cover the
+      # other branch: nvm is loaded, and `node` would come from it.
+      - name: .zshrc loads nvm when ~/.nvm exists
+        run: |
+          mkdir -p "$RUNNER_TEMP/nvmhome/.nvm"
+          printf 'nvm() { echo stub-nvm; }\n' > "$RUNNER_TEMP/nvmhome/.nvm/nvm.sh"
+          HOME="$RUNNER_TEMP/nvmhome" zsh -c 'source ./MacOS/.zshrc; nvm' | grep -q stub-nvm
+
       - name: macos-fix-home-end.sh
         run: |
           bash MacOS/macos-fix-home-end.sh

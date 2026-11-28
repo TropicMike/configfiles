@@ -70,3 +70,18 @@ fi
 typeset -U PATH
 
 [ -f ~/.aliases ] && source ~/.aliases
+
+# nvm (Node version manager), installed as a git clone at ~/.nvm — not via
+# Homebrew, so there is only one copy. Loaded last so its `nvm use` PATH
+# prepend wins over any Homebrew node. The default alias (set with
+# `nvm alias default ...`) is what each new shell starts on.
+#
+# Wrapped in `if` with a trailing `:` so the file sources with status 0 when
+# nvm is absent: this is the last block, and CI (which has no ~/.nvm) asserts
+# `source .zshrc && ...`, so a bare `[ -s ... ] && ...` line would fail it.
+export NVM_DIR="$HOME/.nvm"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  :
+fi

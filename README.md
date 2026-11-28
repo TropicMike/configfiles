@@ -101,7 +101,7 @@ The script runs unchanged on Linux, macOS, and Windows. It resolves the `opencod
 
 | File | Description |
 |------|-------------|
-| `.zshrc` | Zsh initialization — sets PATH (user dirs for non-root only), large history shared between terminals, sources `.aliases`, sets prompt (red for root, green for user) |
+| `.zshrc` | Zsh initialization — sets PATH (user dirs for non-root only), large history shared between terminals, sources `.aliases`, sets prompt (red for root, green for user), loads nvm from `~/.nvm` if present (guarded, so it is a no-op where nvm is not installed; loaded last so `nvm use` wins over any Homebrew `node`) |
 | `macos-fix-home-end.sh` | Remaps Home/End keys to beginning/end of line via DefaultKeyBinding.dict |
 
 ### Windows/
@@ -142,4 +142,4 @@ Registry files to enable or disable the Windows context menu:
   - Shell scripts and dotfiles use Unix line endings (LF)
   - Batch files and PowerShell scripts use DOS line endings (CRLF)
   - Registry files use UTF-16 encoding with BOM
-- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, JSON and `.reg` encoding checks, a status line render test, `deploy.sh` behavior tests (smoke tests on Linux and macOS covering the Darwin-only branches, dry run, symlinked and unwritable destinations, invalid snippet, sourcing from bash and zsh), PSScriptAnalyzer, and the `verify-config` smoke test on Linux, macOS, and Windows on every push
+- CI (GitHub Actions) runs shellcheck, bash/zsh syntax and source checks, JSON and `.reg` encoding checks, a status line render test, `deploy.sh` behavior tests (smoke tests on Linux and macOS covering the Darwin-only branches, dry run, symlinked and unwritable destinations, invalid snippet, sourcing from bash and zsh), PSScriptAnalyzer, and the `verify-config` smoke test on Linux, macOS, and Windows on every push. The macOS job also sources `.zshrc` with a stubbed `~/.nvm` to prove the nvm block loads when present and is a clean no-op (status 0) when absent
